@@ -787,7 +787,7 @@ body.modal{overflow:hidden;}
     <div class="grid">
       <div class="panel col8" id="pTend">
         <span class="tira volumen"></span>
-        <div class="pt" id="tdTit">Tendencia del grupo</div>
+        <div class="pt" id="tdTit">Tendencia</div>
         <div class="ph" id="tdSub"></div>
         <div class="cwrap tall"><canvas id="cTend"></canvas></div>
       </div>
@@ -851,7 +851,7 @@ var TIPOS={LINEAS:'Líneas',SERVINSP:'Servicio de inspección',FINAL:'Final',EMP
 function tipoNom(t){return TIPOS[t]||(t?t.charAt(0)+t.slice(1).toLowerCase():'—');}
 var AUD_F=['n','r','m','d','l'];
 var GR={
-  auditoras:{nom:'Auditoras',quien:'Auditora',quienes:'auditoras',f:AUD_F,base:'n',baseNom:'auditorías',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Todos los tipos',
+  auditoras:{comp:'sus compañeras',todos:'todas las auditoras',nom:'Auditoras',quien:'Auditora',quienes:'auditoras',f:AUD_F,base:'n',baseNom:'auditorías',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Todos los tipos',
     nombres:{n:'Auditorías',r:'Rechazadas',m:'Prendas auditadas',d:'Prendas defectuosas',l:'Prendas en lote',dias:'Días con registro'},
     inds:{
       m:{nom:'Prendas auditadas',k:'vol',dir:1,fmt:'int',ph:'Prendas auditadas = suma de las muestras de sus auditorías.'},
@@ -861,14 +861,14 @@ var GR={
       pd:{nom:'% prendas defectuosas',k:'ratio',num:'d',den:'m',mult:100,dir:0,fmt:'pct',ph:'% prendas defectuosas = prendas defectuosas encontradas ÷ prendas auditadas.'}},
     def:'m',kpis:['n','m','pr','pd'],tarj:['n','pr','pd','m','dias'],cols:['dias','n','npd','m','r','pr','pd'],
     nota:'Una auditora de Empaque revisa unas 160 prendas por auditoría y una de Líneas unas 6: para comparar volumen, filtra por tipo.'},
-  inspectoras:{nom:'Inspectoras auditadas',quien:'Inspectora',quienes:'inspectoras',f:AUD_F,base:'n',baseNom:'auditorías',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Líneas y Serv. inspección',
+  inspectoras:{comp:'sus compañeras',todos:'todas las inspectoras',nom:'Inspectoras auditadas',quien:'Inspectora',quienes:'inspectoras',f:AUD_F,base:'n',baseNom:'auditorías',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Líneas y Serv. inspección',
     nombres:{n:'Auditorías',r:'Rechazadas',m:'Prendas revisadas',d:'Prendas defectuosas',l:'Prendas en lote',dias:'Días auditada'},
     inds:{
       pr:{nom:'% rechazo de su trabajo',k:'ratio',num:'r',den:'n',mult:100,dir:-1,fmt:'pct',ph:'% rechazo = auditorías de su trabajo que salieron rechazadas ÷ auditorías de su trabajo (Líneas y Servicio de inspección).'},
       pd:{nom:'% prendas defectuosas',k:'ratio',num:'d',den:'m',mult:100,dir:-1,fmt:'pct',ph:'% prendas defectuosas = prendas con defecto que encontró la auditora ÷ prendas revisadas de su trabajo.'},
       n:{nom:'Auditorías a su trabajo',k:'vol',dir:0,fmt:'int',ph:'Veces que se auditó su trabajo.'}},
     def:'pr',kpis:['pr','pd','n'],tarj:['n','pr','m','pd'],cols:['n','r','pr','m','d','pd']},
-  ifc:{nom:'Insp. Final Costura',quien:'Inspectora',quienes:'inspectoras',f:['carga','prim','defe','rein','ming','mina','mingE'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:false,
+  ifc:{comp:'sus compañeras',todos:'todas las inspectoras',nom:'Insp. Final Costura',quien:'Inspectora',quienes:'inspectoras',f:['carga','prim','defe','rein','ming','mina','mingE'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:false,
     nombres:{carga:'Prendas inspeccionadas',prim:'Primeras',defe:'Defectos',rein:'Reinspeccionadas',ming:'Min ganados',mina:'Min asistidos',dias:'Días'},
     inds:{
       ef:{nom:'% eficiencia',k:'ratio',num:'mingE',den:'mina',mult:100,dir:1,fmt:'pct',ph:'% eficiencia = minutos ganados ÷ minutos asistidos (sin improductivas ni refrigerio). Minutos ganados = (prendas + reinspeccionadas) × T. STD.'},
@@ -877,14 +877,14 @@ var GR={
       carga:{nom:'Prendas inspeccionadas',k:'vol',dir:1,fmt:'int',ph:'Prendas inspeccionadas en el período.'},
       defe:{nom:'Defectos detectados',k:'vol',dir:0,fmt:'int',ph:'Defectos que detectó y registró.'}},
     def:'ef',kpis:['ef','carga','pp','defe'],tarj:['carga','pp','defe','ef','dias'],cols:['dias','carga','cpd','pp','defe','ef']},
-  acabados:{nom:'Acabados',quien:'Operario',quienes:'operarios',f:['mp','ma','inc'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Todas las áreas',area:true,
+  acabados:{comp:'sus compañeros',todos:'todos los operarios',nom:'Acabados',quien:'Operario',quienes:'operarios',f:['mp','ma','inc'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Todas las áreas',area:true,
     nombres:{mp:'Min producidos',ma:'Min asistidos',inc:'Incentivo S/',dias:'Días trabajados'},
     inds:{
       ef:{nom:'% eficiencia',k:'ratio',num:'mp',den:'ma',mult:100,dir:1,fmt:'pct',ph:'% eficiencia = minutos producidos ÷ minutos asistidos, ponderado por día (la del módulo donde trabajó cada día). Puede diferir hasta 2 puntos de la semanal de pago.'},
       inc:{nom:'Incentivo',k:'vol',dir:0,fmt:'money',ph:'Incentivo ganado en soles.'},
       hrs:{nom:'Horas asistidas',k:'vol',dir:0,fmt:'dec1',ph:'Horas asistidas del HO.'}},
     def:'ef',kpis:['ef','inc','hrs'],tarj:['hrs','inc','dias','ef'],cols:['dias','hrs','ef','inc']},
-  potenciales:{nom:'Potenciales',quien:'Persona',quienes:'personas',f:['s','n'],base:'n',baseNom:'mediciones',mins:{semana:1,mes:2,anio:4},tipos:true,tipoTodos:'Todas las áreas',area:true,soloSemanaMesAnio:true,
+  potenciales:{comp:'sus compañeros',todos:'todas las personas',nom:'Potenciales',quien:'Persona',quienes:'personas',f:['s','n'],base:'n',baseNom:'mediciones',mins:{semana:1,mes:2,anio:4},tipos:true,tipoTodos:'Todas las áreas',area:true,soloSemanaMesAnio:true,
     nombres:{s:'Suma potencial',n:'Mediciones',dias:'Semanas'},
     inds:{
       pot:{nom:'Potencial promedio',k:'ratio',num:'s',den:'n',mult:1,dir:1,fmt:'pct',ph:'Potencial promedio = suma de los potenciales medidos ÷ número de mediciones. Costura mide por operación; Corte y Acabados, por persona: no se comparan entre áreas.'},
@@ -995,9 +995,9 @@ function refDe(pp,cfg,ind,rows,minN){
 }
 function estado(v,ref,dir){
   if(ref==null||v==null)return ['Sin referencia','low'];
-  if(v>=ref.m+ref.sd)return ['Sobre el grupo',dir===0?'neu':(dir>0?'bien':'mal')];
-  if(v<=ref.m-ref.sd)return ['Bajo el grupo',dir===0?'neu':(dir>0?'mal':'bien')];
-  return ['En el grupo','mid'];
+  if(v>=ref.m+ref.sd)return ['Sobre '+COMP(),dir===0?'neu':(dir>0?'bien':'mal')];
+  if(v<=ref.m-ref.sd)return ['Bajo '+COMP(),dir===0?'neu':(dir>0?'mal':'bien')];
+  return ['Como '+COMP(),'mid'];
 }
 function colEstado(v,ref,dir){var c=estado(v,ref,dir)[1];return c==='bien'?'#0F7A5A':c==='mal'?'#DC2626':'#4E6B78';}
 
@@ -1005,6 +1005,9 @@ function colEstado(v,ref,dir){var c=estado(v,ref,dir)[1];return c==='bien'?'#0F7
 ORDEN_G.forEach(function(g){var c=GR[g];Object.keys(c.inds).forEach(function(k){c.inds[k]._key=k;});});
 
 function cfgG(){return GR[ST.g];}
+function COMP(){return cfgG().comp;}
+function TODOS(){return cfgG().todos;}
+function may(t){return t.charAt(0).toUpperCase()+t.slice(1);}
 function filas(){var d=DATA[ST.g]||[];return ST.tipo?d.filter(function(o){return o.t===ST.tipo;}):d;}
 function periodos(rows,modo){var s={};rows.forEach(function(o){s[o[modo]]=1;});return Object.keys(s).sort();}
 function minDe(cfg,modo){return cfg.mins[modo];}
@@ -1046,8 +1049,8 @@ function render(){
   if(!ST.ind||!cfg.inds[ST.ind])ST.ind=cfg.def;
   $('fInd').innerHTML=Object.keys(cfg.inds).map(function(k){return '<option value="'+k+'"'+(k===ST.ind?' selected':'')+'>'+esc(cfg.inds[k].nom)+'</option>';}).join('');
   var rows=filas(),pers=periodos(rows,ST.modo);
-  if(!pers.length){mostrarVacio('No hay registros de '+cfg.nom.toLowerCase()+(ST.tipo?' ('+tipoNom(ST.tipo)+')':'')+'. Cambia el tipo o el grupo en la barra de arriba.');ULT={pers:[]};publicar(null);return;}
-  if(!ST.per||pers.indexOf(ST.per)<0)ST.per=pers[pers.length-1];
+  if(!pers.length){mostrarVacio('No hay registros de '+cfg.nom.toLowerCase()+(ST.tipo?' ('+tipoNom(ST.tipo)+')':'')+'. Cambia el tipo o la pestaña en la barra de arriba.');ULT={pers:[]};publicar(null);return;}
+  if(!ST.per||pers.indexOf(ST.per)<0){var cerr=pers.filter(function(k){return !enCurso(ST.modo,k);});ST.per=cerr.length?cerr[cerr.length-1]:pers[pers.length-1];}
   $('fPer').innerHTML=pers.slice().reverse().map(function(k){return '<option value="'+k+'"'+(k===ST.per?' selected':'')+'>'+esc(perNom(ST.modo,k))+'</option>';}).join('');
   var iP=pers.indexOf(ST.per);$('bPrev').disabled=iP<=0;$('bNext').disabled=iP>=pers.length-1;
   var prevK=iP>0?pers[iP-1]:null;
@@ -1125,7 +1128,7 @@ function renderRanking(c){
   $('rkTit').textContent='Ranking de '+cfg.quienes+' · '+perNom(ST.modo,ST.per)+(ST.tipo?' · '+tipoNom(ST.tipo):'');
   var ref=c.ref;
   $('rkSub').textContent=ind.ph+' Ordenado por '+ind.nom.toLowerCase()+(ST.sort&&ST.sort!==ST.ind?' (cambiado con el encabezado)':'')+'. Entran al orden quienes tienen '+c.minN+' o más '+cfg.baseNom+' en el período; el resto va al final en gris.'+
-    (ref?' Valor del grupo '+fmtV(ref.m,ind.fmt)+(ind.k==='vol'?' por persona':'')+'; "Sobre/Bajo el grupo" = a más de '+fmtV(ref.sd,ind.fmt==='pct'?'dec1':ind.fmt)+(ind.fmt==='pct'?' pts':'')+' (una desviación) del grupo.':' Menos de 3 '+cfg.quienes+' llegan al mínimo: no hay referencia de grupo.')+
+    (ref?' Valor de '+cfg.todos+' '+fmtV(ref.m,ind.fmt)+(ind.k==='vol'?' por persona':'')+'; "Sobre/Bajo '+cfg.comp+'" = a más de '+fmtV(ref.sd,ind.fmt==='pct'?'dec1':ind.fmt)+(ind.fmt==='pct'?' pts':'')+' (una desviación) de ese valor.':' Menos de 3 '+cfg.quienes+' llegan al mínimo: no hay con quién comparar.')+
     (ST.vista==='tarj'?' La línea de cada tarjeta: sus últimos 8 períodos.':'')+(cfg.nota&&!ST.tipo?' '+cfg.nota:'');
   if(!lst.length){$('rkTabla').innerHTML='<div class="vacio">Nadie coincide con "'+esc(ST.q)+'" en '+esc(perNom(ST.modo,ST.per))+'.</div>';return;}
   if(ST.vista==='tarj'){$('pRank').classList.remove('plegable-si','plegable','plegado');var vb=$('pRank').querySelector('.verdet');if(vb)vb.remove();renderTarjetas(c,lst);return;}
@@ -1135,11 +1138,11 @@ function renderRanking(c){
   var th='<tr><th>#</th><th class="ord'+(sk==='_p'?' on':'')+'" data-k="_p">'+esc(cfg.quien)+'</th>'+(cfg.area&&!ST.tipo?'<th>Área</th>':'')+
     cols.map(function(k){return '<th class="num ord'+(sk===k?' on':'')+'" data-k="'+k+'">'+esc(nomCol(cfg,k))+'</th>';}).join('')+
     (cols.indexOf(ST.ind)<0?'<th class="num ord'+(sk===ST.ind?' on':'')+'" data-k="'+ST.ind+'">'+esc(ind.nom)+'</th>':'')+
-    '<th class="num ord'+(sk==='_dv'?' on':'')+'" data-k="_dv">vs '+esc(c.prevK?perCorto(ST.modo,c.prevK):'anterior')+'</th><th>Frente al grupo</th></tr>';
+    '<th class="num ord'+(sk==='_dv'?' on':'')+'" data-k="_dv">vs '+esc(c.prevK?perCorto(ST.modo,c.prevK):'anterior')+'</th><th>Frente a '+esc(cfg.comp)+'</th></tr>';
   var pos=0,colsV=cols.indexOf(ST.ind)<0?cols.concat([ST.ind]):cols;
   var tb=lst.map(function(x){
     if(x.ok)pos++;
-    var est=x.ok?estado(x.v,ref,ind.dir):['Muestra baja ('+baseDe(x.a,cfg)+' '+cfg.baseNom+')','low'];
+    var est=x.ok?estado(x.v,ref,ind.dir):['Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+cfg.baseNom,'low'];
     return '<tr class="clic'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'"><td>'+(x.ok?'<span class="pos">'+pos+'</span>':'')+'</td><td class="nm">'+esc(x.p)+'</td>'+
       (cfg.area&&!ST.tipo?'<td>'+esc(tipoNom(x.area))+'</td>':'')+
       colsV.map(function(k){var v=valCol(cfg,x.a,k),f=fmtCol(cfg,k);
@@ -1163,7 +1166,7 @@ function renderTarjetas(c,lst){
   var sec=(cfg.tarj||cfg.cols).filter(function(k){return k!==ST.ind;}).slice(0,4);
   lst.forEach(function(x,ix){
     if(x.ok)pos++;
-    var est=x.ok?estado(x.v,ref,ind.dir):['Muestra baja · '+baseDe(x.a,cfg)+' '+cfg.baseNom,'low'];
+    var est=x.ok?estado(x.v,ref,ind.dir):['Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+cfg.baseNom,'low'];
     var col=x.ok?colEstado(x.v,ref,ind.dir):'#9AA9A4';
     h+='<div class="tp'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'" tabindex="0" style="--c:'+col+'"><span class="tpb"></span>'+
       '<div class="tph"><span class="tpos">'+(x.ok?pos:'–')+'</span><div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tipoNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div></div></div>'+
@@ -1255,8 +1258,8 @@ function renderTend(c){
   var cfg=c.cfg,ind=c.ind;destruir('cTend');
   if(ST.modo==='anio'){
     var pa=porAnioMes(c.rows,cfg,ind),ny=Object.keys(pa).length;
-    $('tdTit').textContent=ind.nom+' del grupo por mes · comparativo entre años';
-    $('tdSub').textContent=(ind.k==='vol'?'Total del grupo en cada mes. ':'Valor del grupo en cada mes, ponderado (sumas del mes, no promedio de porcentajes). ')+'Una línea por año.';
+    $('tdTit').textContent=ind.nom+' de '+cfg.todos+' por mes · comparativo entre años';
+    $('tdSub').textContent=(ind.k==='vol'?'Total de '+cfg.todos+' en cada mes. ':'Valor de '+cfg.todos+' en cada mes, ponderado (sumas del mes, no promedio de porcentajes). ')+'Una línea por año.';
     if(ny<1){$('pTend').style.display='none';return;}
     $('pTend').style.display='';lineaAnual($('cTend'),'cTend',pa,ind);return;
   }
@@ -1265,8 +1268,8 @@ function renderTend(c){
   var s=ks.map(function(k){return by[k]?val(total(by[k],cfg),ind):null;});
   if(s.filter(function(x){return x!=null;}).length<2){$('pTend').style.display='none';return;}
   $('pTend').style.display='';
-  $('tdTit').textContent=ind.nom+' del grupo por '+(ST.modo==='semana'?'semana':'mes');
-  $('tdSub').textContent=(ind.k==='vol'?'Total del grupo en cada período.':'Valor del grupo en cada período, ponderado (sumas del período, no promedio de porcentajes).')+' Termina en el período elegido, resaltado.';
+  $('tdTit').textContent=ind.nom+' de '+cfg.todos+' por '+(ST.modo==='semana'?'semana':'mes');
+  $('tdSub').textContent=(ind.k==='vol'?'Total de '+cfg.todos+' en cada período.':'Valor de '+cfg.todos+' en cada período, ponderado (sumas del período, no promedio de porcentajes).')+' Termina en el período elegido, resaltado.';
   var col=colorInd(ind);
   charts.cTend=new Chart($('cTend'),{type:'line',data:{labels:ks.map(function(k){return perCorto(ST.modo,k);}),datasets:[{label:ind.nom,data:s,borderColor:col[0],borderWidth:3.5,tension:.35,fill:true,backgroundColor:function(x){return area(x,col[1]);},
     pointRadius:ks.map(function(_,j){return j===ks.length-1?7:4.5;}),pointHoverRadius:8,pointBackgroundColor:ks.map(function(_,j){return j===ks.length-1?'#0E3B36':col[0];}),pointBorderColor:'#fff',pointBorderWidth:2.5,spanGaps:true}]},
@@ -1301,7 +1304,7 @@ function renderHeat(c){
   var otros={};ks.forEach(function(k){Object.keys(pp[k]).forEach(function(p){if(!vistos[p]&&(!ST.q||p.indexOf(ST.q)>=0))otros[p]=(otros[p]||0)+baseDe(pp[k][p],cfg);});});
   var lista=ord.concat(Object.keys(otros).sort(function(a,b){return otros[b]-otros[a];}));
   $('htTit').textContent=ind.nom+' por '+(ST.modo==='semana'?'semana':ST.modo==='mes'?'mes':'año')+' · últimos '+ks.length+' períodos';
-  $('htSub').textContent='Cada casilla es el valor de la persona en ese período. Color frente al grupo del mismo período (una desviación). En gris cursiva: menos de '+c.minN+' '+cfg.baseNom+'. Toca un nombre para ver su ficha.';
+  $('htSub').textContent='Cada casilla es el valor de la persona en ese período. Color frente a '+cfg.comp+' del mismo período (una desviación). En gris cursiva: menos de '+c.minN+' '+cfg.baseNom+'. Toca un nombre para ver su ficha.';
   var th='<tr><th>'+esc(cfg.quien)+'</th>'+ks.map(function(k){return '<th class="'+(k===ST.per?'act':'')+'">'+esc(perCorto(ST.modo,k))+'</th>';}).join('')+'</tr>';
   var tb=lista.map(function(p){
     return '<tr class="clic" data-p="'+esc(p)+'"><td class="nm">'+esc(p)+'</td>'+ks.map(function(k){var a=pp[k][p];if(!a)return '<td class="c"></td>';
@@ -1309,8 +1312,8 @@ function renderHeat(c){
       if(low||v==null)cl+='low';else{var e=estado(v,refs[k],ind.dir)[1];cl+=e==='bien'?'alto':e==='mal'?'bajo':e==='neu'?(v>=refs[k].m?'nalto':'nbajo'):'medio';}
       return '<td class="'+cl+'" title="'+esc(p+' · '+perNom(ST.modo,k)+' · '+baseDe(a,cfg)+' '+cfg.baseNom)+'">'+fmtCorto(v,ind.fmt)+'</td>';}).join('')+'</tr>';}).join('');
   $('htTabla').innerHTML='<table class="heat"><thead>'+th+'</thead><tbody>'+tb+'</tbody></table>';
-  var ley=ind.dir===0?'<span><i style="background:#E1EAEE"></i>Sobre el grupo</span><span><i style="background:#F1F6F4"></i>En el grupo</span><span><i style="background:#F3F5F6;border:1px solid #DCE5E2"></i>Bajo el grupo</span>':
-    '<span><i style="background:#D8F0E5"></i>Mejor que el grupo</span><span><i style="background:#F1F6F4"></i>En el grupo</span><span><i style="background:#FBE1E1"></i>Peor que el grupo</span>';
+  var ley=ind.dir===0?'<span><i style="background:#E1EAEE"></i>Sobre '+esc(cfg.comp)+'</span><span><i style="background:#F1F6F4"></i>Como '+esc(cfg.comp)+'</span><span><i style="background:#F3F5F6;border:1px solid #DCE5E2"></i>Bajo '+esc(cfg.comp)+'</span>':
+    '<span><i style="background:#D8F0E5"></i>Mejor que '+esc(cfg.comp)+'</span><span><i style="background:#F1F6F4"></i>Como '+esc(cfg.comp)+'</span><span><i style="background:#FBE1E1"></i>Peor que '+esc(cfg.comp)+'</span>';
   $('htLey').innerHTML=ley;
   [].forEach.call($('htTabla').querySelectorAll('tr.clic'),function(r){r.onclick=function(){abrirFicha(r.dataset.p);};});
 }
@@ -1379,7 +1382,7 @@ function renderFicha(){
     var srt=ok.slice().sort(function(x,y){var vx=val(gp[x],id),vy=val(gp[y],id);return id.dir<0?vx-vy:vy-vx;});
     var pos=srt.indexOf(F.p),ref=refDe(gp,cfg,id,gPer,minN);
     var gv=id.k==='vol'?(ref?ref.m:null):val(total(gPer,cfg),id);
-    var sub=subUniverso(cfg,k,a)+(gv!=null?' · grupo '+fmtV(gv,id.fmt)+(id.k==='vol'?' por persona':''):'')+(pos>=0?' · puesto '+(pos+1)+' de '+srt.length:'')+(baja&&i===0?' · muestra baja ('+baseDe(a,cfg)+' de '+minN+' '+cfg.baseNom+')':'');
+    var sub=subUniverso(cfg,k,a)+(gv!=null?' · '+cfg.todos+' '+fmtV(gv,id.fmt)+(id.k==='vol'?' por persona':''):'')+(pos>=0?' · puesto '+(pos+1)+' de '+srt.length:'')+(baja&&i===0?' · muestra baja ('+baseDe(a,cfg)+' de '+minN+' '+cfg.baseNom+')':'');
     h+='<div class="kpi'+(i===0?' hero':'')+(id.fmt==='money'?' money':(id.dir===0&&i>0?' neutro':''))+'"><span class="banda"></span><div class="cuerpo"><div class="l">'+esc(id.nom)+(i===0?'<span class="chip">'+esc(perCorto(F.modo,F.per))+'</span>':'')+'</div><div class="row"><span class="v">'+fmtV(v,id.fmt)+'</span>'+
       (dv!=null?'<span class="d '+clsDelta(dv,id.dir)+'">'+fmtDelta(dv,id.fmt)+'</span>':'')+'</div><div class="s">'+esc(sub)+(prevK&&vp!=null?esc(' · vs '+fmtV(vp,id.fmt)+' en '+perNom(F.modo,prevK)):'')+'</div></div></div>';
   });
@@ -1396,7 +1399,7 @@ function renderFicha(){
     var sP=ks.map(function(k){return byP[k]?val(total(byP[k],cfg),ind):null;}),sG=ks.map(function(k){if(!byG[k])return null;if(ind.k==='vol'){var r=refDe(porPersona(byG[k],cfg),cfg,ind,byG[k],minN);return r?r.m:null;}return val(total(byG[k],cfg),ind);});
     var bajaP=ks.map(function(k){return byP[k]?baseDe(total(byP[k],cfg),cfg)<minN:false;});
     $('fTdTit').textContent=ind.nom+' por '+(F.modo==='semana'?'semana':'mes');
-    $('fTdSub').textContent=ind.ph+' Línea punteada: '+(ind.k==='vol'?'promedio por persona del grupo':'valor del grupo')+'. Puntos huecos: muestra baja. Resaltado: '+perNom(F.modo,F.per)+'.';
+    $('fTdSub').textContent=ind.ph+' Línea punteada: '+(ind.k==='vol'?'promedio por persona de '+cfg.todos:'valor de '+cfg.todos)+'. Puntos huecos: muestra baja. Resaltado: '+perNom(F.modo,F.per)+'.';
     if(sP.filter(function(x){return x!=null;}).length<2){$('cFTend').parentNode.style.display='none';$('fTdVacio').style.display='';$('fTdVacio').textContent='Solo tiene un período con registros en vista por '+(F.modo==='semana'?'semana':'mes')+': no hay tendencia que dibujar.';}
     else{
       $('cFTend').parentNode.style.display='';$('fTdVacio').style.display='none';
@@ -1404,7 +1407,7 @@ function renderFicha(){
       charts.cFTend=new Chart($('cFTend'),{type:'line',data:{labels:ks.map(function(k){return perCorto(F.modo,k);}),datasets:[
         {label:F.p,data:sP,borderColor:col[0],borderWidth:3.5,tension:.35,fill:true,backgroundColor:function(x){return area(x,col[1]);},spanGaps:true,
           pointRadius:ks.map(function(_,j){return j===act?8:5;}),pointBackgroundColor:ks.map(function(_,j){return j===act?'#0E3B36':(bajaP[j]?'#fff':col[0]);}),pointBorderColor:ks.map(function(_,j){return bajaP[j]?col[0]:'#fff';}),pointBorderWidth:2.5,pointHoverRadius:8,marcar:ks.map(function(_,j){return j===act;})},
-        {label:'Grupo',data:sG,borderColor:'#4E6B78',borderWidth:1.8,borderDash:[6,5],pointRadius:0,fill:false,tension:.35,spanGaps:true,sinEtiquetas:true}]},
+        {label:may(cfg.todos),data:sG,borderColor:'#4E6B78',borderWidth:1.8,borderDash:[6,5],pointRadius:0,fill:false,tension:.35,spanGaps:true,sinEtiquetas:true}]},
         options:{animation:ANIM,layout:{padding:{top:30,right:22,left:8}},interaction:{mode:'index',intersect:false},plugins:{legend:LEYENDA,etiquetasTendencia:{fmt:function(v){return fmtCorto(v,ind.fmt);}},tooltip:{callbacks:{label:function(t){return t.dataset.label+': '+fmtV(t.parsed.y,ind.fmt);}}}},
           scales:{y:{beginAtZero:true,grace:'10%',ticks:{callback:function(v){return fmtCorto(v,ind.fmt);}}}},onClick:function(e,els){if(els&&els.length){var k=ks[els[0].index];if(pers.indexOf(k)>=0){F.per=k;renderFicha();}}}},plugins:[etiquetasTendencia]});
     }
@@ -1449,12 +1452,12 @@ function publicar(c){
       var lista=cfg.kpis.indexOf(ST.ind)<0?[ST.ind].concat(cfg.kpis):cfg.kpis;
       var tipoX=function(f){return f==='pct'?'porcentaje':f==='money'?'moneda':f==='int'?'entero':'decimal';};
       var conv=function(v,f){return v==null?null:(f==='pct'?v/100:v);};
-      res.push({titulo:'Indicadores del grupo — '+cfg.nom+' · '+lbl,nota:'Porcentajes ponderados: suma de numeradores ÷ suma de denominadores del período.',
+      res.push({titulo:'Indicadores de '+cfg.todos+' — '+cfg.nom+' · '+lbl,nota:'Porcentajes ponderados: suma de numeradores ÷ suma de denominadores del período.',
         columnas:[{campo:'k',titulo:'Indicador',tipo:'texto'},{campo:'v',titulo:perNom(ST.modo,ST.per),tipo:'texto'},{campo:'a',titulo:c.prevK?perNom(ST.modo,c.prevK):'Período anterior',tipo:'texto'},{campo:'u',titulo:'Sobre qué está calculado',tipo:'texto'}],
         filas:lista.map(function(k){var id=cfg.inds[k];return {k:id.nom,v:fmtV(val(tc,id),id.fmt),a:tp?fmtV(val(tp,id),id.fmt):null,u:subUniverso(cfg,k,tc)};})});
       var cols=cfg.cols.indexOf(ST.ind)<0?cfg.cols.concat([ST.ind]):cfg.cols,pos=0;
       var colsX=[{campo:'pos',titulo:'#',tipo:'entero'},{campo:'p',titulo:cfg.quien,tipo:'texto'}].concat(cfg.area&&!ST.tipo?[{campo:'ar',titulo:'Área',tipo:'texto'}]:[]).concat(cols.map(function(k){return {campo:'c_'+k,titulo:nomCol(cfg,k),tipo:tipoX(fmtCol(cfg,k))};}))
-        .concat([{campo:'dv',titulo:'Cambio vs '+(c.prevK?perNom(ST.modo,c.prevK):'anterior')+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'},{campo:'es',titulo:'Frente al grupo',tipo:'texto'}]);
+        .concat([{campo:'dv',titulo:'Cambio vs '+(c.prevK?perNom(ST.modo,c.prevK):'anterior')+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'},{campo:'es',titulo:'Frente a '+cfg.comp,tipo:'texto'}]);
       res.push({titulo:'Ranking — '+ind.nom,nota:ind.ph+' Mínimo para entrar al orden: '+c.minN+' '+cfg.baseNom+'.',columnas:colsX,
         filas:(c.rank||[]).map(function(x){if(x.ok)pos++;var o={pos:x.ok?pos:null,p:x.p,ar:tipoNom(x.area),dv:x.dv,es:x.ok?estado(x.v,c.ref,ind.dir)[0]:'Muestra baja'};
           cols.forEach(function(k){o['c_'+k]=conv(valCol(cfg,x.a,k),fmtCol(cfg,k));});return o;})});
