@@ -1948,6 +1948,22 @@ button.lsTemaBtn .lsTemaTxt{display:none;font-size:13px;font-weight:700}
   ['input','keydown','change'].forEach(function(ev){
     document.addEventListener(ev, function(e){ if (!e.target || !e.target.closest || !e.target.closest('#lsAct')) ultimaTecla = Date.now(); }, true);
   });
+  /* v2.2 (14/10/2026): el aviso NUNCA corta un trabajo a medias. Se recuerdan los campos que la persona tocó y su
+     valor inicial; mientras alguno siga con algo escrito sin guardar (o haya una venta en curso, o haya usado la
+     pantalla en los últimos 3 minutos), el aviso espera. Sale cuando la pantalla queda libre (p. ej. después de
+     guardar, cuando el formulario se limpia). La actualización solo trae cambios de pantalla: no toca datos. */
+  var tocados = [], ultimoUso = 0;
+  function valorDe(el){ if (el.type === 'checkbox' || el.type === 'radio') return el.checked ? '1' : '0'; if (el.type === 'file') return (el.files && el.files.length) ? 'f' + el.files.length : ''; return el.value == null ? '' : String(el.value); }
+  document.addEventListener('focusin', function(e){ var el = e.target; if (!el || !el.matches || !el.matches('input,textarea,select,[contenteditable="true"]') || (el.closest && el.closest('#lsAct'))) return; if (!('__lsIni' in el)){ try { el.__lsIni = el.isContentEditable ? el.textContent : valorDe(el); } catch(x){} } }, true);
+  ['input','change'].forEach(function(ev){ document.addEventListener(ev, function(e){ var el = e.target; if (!e.isTrusted || !el || (el.closest && el.closest('#lsAct'))) return; if (!('__lsIni' in el)) el.__lsIni = ''; if (tocados.indexOf(el) < 0) tocados.push(el); }, true); });
+  ['pointerdown','keydown','input','wheel','touchstart'].forEach(function(ev){ document.addEventListener(ev, function(e){ if (e.isTrusted && !(e.target && e.target.closest && e.target.closest('#lsAct'))) ultimoUso = Date.now(); }, true); });
+  function ocupado(){
+    if (Date.now() - ultimoUso < 3 * 60000) return true;
+    for (var i = 0; i < tocados.length; i++){ var el = tocados[i]; try { if (!el.isConnected) continue; var v = el.isContentEditable ? el.textContent : valorDe(el); if (v !== el.__lsIni && String(v).trim() !== '') return true; } catch(x){} }
+    try { if (typeof window.lsTrabajoPendiente === 'function' && window.lsTrabajoPendiente()) return true; } catch(x){}
+    try { if (Function('return typeof CART!=="undefined"&&Array.isArray(CART)&&CART.length>0')()) return true; } catch(x){}
+    return false;
+  }
   /* v3 (14/10/2026): la firma es el CONTENIDO de esta pantalla, no la fecha de publicación del repositorio.
      GitHub vuelve a publicar todas las pantallas de un repositorio aunque solo cambie una, y sus servidores
      pueden responder fechas distintas un rato: eso hacía salir el aviso sin que la pantalla cambiara.
@@ -1985,7 +2001,7 @@ button.lsTemaBtn .lsTemaTxt{display:none;font-size:13px;font-weight:700}
   }
   function aviso(){
     if (document.getElementById('lsAct') && document.getElementById('lsAct').style.display === 'flex') return;
-    if (Date.now() - ultimaTecla < 20000){ setTimeout(aviso, 5000); return; }
+    if (Date.now() - ultimaTecla < 20000 || ocupado()) return;   /* se vuelve a intentar solo, cada 1,5 s */
     var d = document.getElementById('lsAct');
     if (!d){
       d = document.createElement('div'); d.id = 'lsAct';
