@@ -1952,17 +1952,21 @@ button.lsTemaBtn .lsTemaTxt{display:none;font-size:13px;font-weight:700}
      GitHub vuelve a publicar todas las pantallas de un repositorio aunque solo cambie una, y sus servidores
      pueden responder fechas distintas un rato: eso hacía salir el aviso sin que la pantalla cambiara.
      Ahora: se mira la cabecera (barato) y solo si cambió se baja la pantalla y se compara su contenido. */
-  var _et = null, _h = null;
+  /* v2.1 (14/10/2026): GitHub Pages responde desde varios servidores y, durante unos minutos después de publicar,
+     unos dan la versión nueva y otros la vieja. Por eso el aviso salía varias veces seguidas. Ahora toda consulta
+     lleva una marca única (?_lsact=…) que obliga a leer la versión publicada de verdad, el cambio se confirma con
+     dos lecturas iguales y "Actualizar" carga la pantalla con esa misma marca, para no volver a recibir la vieja. */
+  var _et = null, _h = null, _cand = null;
   function huella(t){ var h = 2166136261; for (var i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16) + '-' + t.length; }
+  function fresco(){ return url + '?_lsact=' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function firma(){
-    return fetch(url, { method: 'HEAD', cache: 'no-store' }).then(function(r){
+    return fetch(fresco(), { method: 'HEAD', cache: 'no-store' }).then(function(r){
       if (!r.ok) return null;
       var et = r.headers.get('etag') || r.headers.get('last-modified') || '';
-      if (_h !== null && _et !== null && et === _et) return _h;
-      var primera = (_h === null);
-      return fetch(url, { cache: primera ? 'force-cache' : 'no-store' }).then(function(g){ return g.ok ? g.text() : null; }).then(function(t){
+      if (_h !== null && et && et === _et) return _h;
+      return fetch(fresco(), { cache: 'no-store' }).then(function(g){ return g.ok ? g.text() : null; }).then(function(t){
         if (t === null) return _h;
-        _h = huella(t); _et = primera ? null : et; return _h;
+        _h = huella(t); _et = et; return _h;
       });
     }).catch(function(){ return null; });
   }
@@ -1974,7 +1978,10 @@ button.lsTemaBtn .lsTemaTxt{display:none;font-size:13px;font-weight:700}
         return false;
       });
     }
-    setTimeout(function(){ location.reload(); }, 150);
+    setTimeout(function(){
+      try { var u = new URL(location.href); u.searchParams.set('_lsact', Date.now().toString(36)); location.replace(u.toString()); }
+      catch(e){ location.reload(); }
+    }, 150);
   }
   function aviso(){
     if (document.getElementById('lsAct') && document.getElementById('lsAct').style.display === 'flex') return;
@@ -2010,7 +2017,9 @@ button.lsTemaBtn .lsTemaTxt{display:none;font-size:13px;font-weight:700}
     firma().then(function(f){
       if (!f) return;
       if (base === null){ base = f; return; }
-      if (f !== base){ pendiente = true; aviso(); }
+      if (f === base){ _cand = null; return; }
+      if (_cand !== f){ _cand = f; setTimeout(function(){ _et = null; revisar(); }, 45000); return; }   /* se confirma con una segunda lectura */
+      pendiente = true; aviso();
     });
   }
   revisar();
