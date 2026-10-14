@@ -718,6 +718,11 @@ tr.baja td.nm{color:#9AA9A4;}
 @media(max-width:600px){.tgrid{grid-template-columns:1fr;}.tpv .v{font-size:30px;}}
 @media print{.tp{break-inside:avoid;}}
 /* puntaje y alertas (v1.2) */
+.tpa{display:flex;flex-wrap:wrap;gap:5px;}
+.pa{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#4E6B78;background:#F1F6F4;border-radius:12px;padding:3px 9px 3px 3px;}
+.pa b{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;border-radius:10px;background:var(--c);color:#fff;font-size:11px;padding:0 5px;}
+html[data-tema="oscuro"] .pa b{color:#0A1C19;}
+td .otras{font-size:10.5px;color:#5F726C;margin-top:2px;}
 .pc-hi{--c:#0F7A5A;} .pc-mid{--c:#4E6B78;} .pc-lo{--c:#DC2626;} .pc-gr{--c:#9AA9A4;}
 html[data-tema="oscuro"] .pc-hi{--c:#3CC495;} html[data-tema="oscuro"] .pc-mid{--c:#9DBBC8;} html[data-tema="oscuro"] .pc-lo{--c:#F47C7C;} html[data-tema="oscuro"] .pc-gr{--c:#6F8781;}
 html[data-tema="oscuro"] .ptb{color:#0A1C19;}
@@ -903,6 +908,7 @@ var SB_URL='https://xxfufpddgoyhbotjmaiy.supabase.co', SB_KEY='sb_publishable_1g
 /* ------------------------------------------------------------------ configuración por grupo */
 var TIPOS={LINEAS:'Líneas',SERVINSP:'Servicio de inspección',FINAL:'Final',EMPAQUE:'Empaque',CLIENTE:'Cliente',IFC:'Inspección final',
   DOBLADO:'Doblado',PLANCHA:'Plancha',VAPOR:'Vapor',ENCAJADO:'Encajado',APOYO:'Apoyo',COSTURA:'Costura',CORTE:'Corte',ACABADOS:'Acabados'};
+function tNom(t){var c=GR[ST.g];return (c&&c.proc&&c.proc[t]?c.proc[t]+' · ':'')+tipoNom(t);}
 function tipoNom(t){return TIPOS[t]||(t?t.charAt(0)+t.slice(1).toLowerCase():'—');}
 var AUD_F=['n','r','m','d','l'];
 var GR={
@@ -932,7 +938,7 @@ var GR={
       carga:{nom:'Prendas inspeccionadas',k:'vol',dir:1,fmt:'int',ph:'Prendas inspeccionadas en el período.'},
       defe:{nom:'Defectos detectados',k:'vol',dir:0,fmt:'int',ph:'Defectos que detectó y registró.'}},
     def:'ef',kpis:['ef','carga','pp','defe'],tarj:['carga','pp','defe','ef','dias'],cols:['dias','carga','cpd','pp','defe','ef']},
-  acabados:{comp:'sus compañeros',todos:'todos los operarios',nom:'Acabados',quien:'Operario',quienes:'operarios',f:['mp','ma','inc'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Todas las áreas',area:true,
+  acabados:{comp:'sus compañeros',todos:'todos los operarios',nom:'Eficiencia',proc:{DOBLADO:'Acabados',PLANCHA:'Acabados',VAPOR:'Acabados',ENCAJADO:'Acabados',APOYO:'Acabados'},quien:'Operario',quienes:'operarios',f:['mp','ma','inc'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Todas las áreas',area:true,
     nombres:{mp:'Min producidos',ma:'Min asistidos',inc:'Incentivo S/',dias:'Días trabajados'},
     inds:{
       ef:{nom:'% eficiencia',k:'ratio',num:'mp',den:'ma',mult:100,dir:1,fmt:'pct',ph:'% eficiencia = minutos producidos ÷ minutos asistidos, ponderado por día (la del módulo donde trabajó cada día). Puede diferir hasta 2 puntos de la semanal de pago.'},
@@ -1073,16 +1079,28 @@ function fmtCol(cfg,k){if(cfg.inds[k])return cfg.inds[k].fmt;return 'int';}
 /* ------------------------------------------------------------------ barra */
 function armarBarra(){
   $('segGrupo').innerHTML=ORDEN_G.map(function(g){return '<button type="button" data-g="'+g+'"'+(g===ST.g?' class="active"':'')+'>'+esc(GR[g].nom)+'</button>';}).join('');
-  [].forEach.call($('segGrupo').children,function(b){b.onclick=function(){if(ST.g===b.dataset.g)return;ST.g=b.dataset.g;ST.tipo='';ST.ind=null;ST.sort=null;ST.per=null;
+  [].forEach.call($('segGrupo').children,function(b){b.onclick=function(){if(ST.g===b.dataset.g)return;ST.g=b.dataset.g;ST.tipo='';ST.tipoAuto=false;ST.ind=null;ST.sort=null;ST.per=null;
     [].forEach.call($('segGrupo').children,function(x){x.classList.toggle('active',x===b);});irGrupo();};});
   [].forEach.call($('segModo').children,function(b){b.onclick=function(){ST.modo=b.dataset.m;ST.per=null;[].forEach.call($('segModo').children,function(x){x.classList.toggle('active',x===b);});render();};});
   [].forEach.call($('segVista').children,function(b){b.onclick=function(){ST.vista=b.dataset.v;[].forEach.call($('segVista').children,function(x){x.classList.toggle('active',x===b);});renderRanking(ULT);reajustarGrids();plegarTablasEnCelular();};});
   $('fPer').onchange=function(){ST.per=this.value;render();};
   $('bPrev').onclick=function(){mover(-1);};$('bNext').onclick=function(){mover(1);};
-  $('fTipo').onchange=function(){ST.tipo=this.value;render();};
+  $('fTipo').onchange=function(){ST.tipo=this.value;ST.tipoAuto=false;render();};
   $('fInd').onchange=function(){ST.ind=this.value;ST.sort=null;render();};
-  var tq;$('fQ').oninput=function(){var v=this.value;clearTimeout(tq);tq=setTimeout(function(){ST.q=v.trim().toUpperCase();render();},180);};
+  var tq;$('fQ').oninput=function(){var v=this.value;clearTimeout(tq);tq=setTimeout(function(){ST.q=v.trim().toUpperCase();irAreaDe();render();},180);};
   $('bReint').onclick=function(){$('err').classList.remove('on');irGrupo();};
+}
+/* Al escribir un nombre en Eficiencia o Potenciales, la pantalla pasa al área de esa persona.
+   Si trabaja en varias áreas, se queda en "Todas" y su tarjeta muestra el puntaje de cada área. */
+function irAreaDe(){
+  var cfg=cfgG();if(!cfg.area)return;
+  if(!ST.q){if(ST.tipoAuto){ST.tipo='';ST.tipoAuto=false;}return;}
+  if(ST.tipo&&!ST.tipoAuto)return;
+  var d=DATA[ST.g]||[],ar={},per=ST.per;
+  d.forEach(function(o){if(o.p.indexOf(ST.q)>=0&&(!per||o[ST.modo]===per))ar[o.t]=1;});
+  if(!Object.keys(ar).length)d.forEach(function(o){if(o.p.indexOf(ST.q)>=0)ar[o.t]=1;});
+  var l=Object.keys(ar);
+  if(l.length===1){ST.tipo=l[0];ST.tipoAuto=true;}else if(ST.tipoAuto){ST.tipo='';ST.tipoAuto=false;}
 }
 function mover(d){var l=ULT&&ULT.pers||[];var i=l.indexOf(ST.per)+d;if(i>=0&&i<l.length){ST.per=l[i];render();}}
 
@@ -1099,12 +1117,15 @@ function render(){
   var cfg=cfgG(),todo=DATA[ST.g]||[];
   /* opciones de tipo */
   var ts={};todo.forEach(function(o){ts[o.t]=1;});var tl=Object.keys(ts).sort();
-  if(cfg.tipos&&tl.length>1){$('fTipo').style.display='';$('fTipo').innerHTML='<option value="">'+esc(cfg.tipoTodos)+'</option>'+tl.map(function(t){return '<option value="'+esc(t)+'"'+(t===ST.tipo?' selected':'')+'>'+esc(tipoNom(t))+'</option>';}).join('');}
+  if(cfg.tipos&&tl.length>1){$('fTipo').style.display='';var op=function(t){return '<option value="'+esc(t)+'"'+(t===ST.tipo?' selected':'')+'>'+esc(cfg.proc&&cfg.proc[t]?tipoNom(t):tNom(t))+'</option>';};
+    if(cfg.proc){var gps={},sueltos=[];tl.forEach(function(t){var g=cfg.proc[t];if(g)(gps[g]=gps[g]||[]).push(t);else sueltos.push(t);});
+      $('fTipo').innerHTML='<option value="">'+esc(cfg.tipoTodos)+'</option>'+Object.keys(gps).map(function(g){return '<optgroup label="'+esc(g)+'">'+gps[g].map(op).join('')+'</optgroup>';}).join('')+sueltos.map(op).join('');}
+    else $('fTipo').innerHTML='<option value="">'+esc(cfg.tipoTodos)+'</option>'+tl.map(op).join('');}
   else {$('fTipo').style.display='none';ST.tipo='';}
   if(!ST.ind||!cfg.inds[ST.ind])ST.ind=cfg.def;
   $('fInd').innerHTML=Object.keys(cfg.inds).map(function(k){return '<option value="'+k+'"'+(k===ST.ind?' selected':'')+'>'+esc(cfg.inds[k].nom)+'</option>';}).join('');
   var rows=filas(),pers=periodos(rows,ST.modo);
-  if(!pers.length){mostrarVacio('No hay registros de '+cfg.nom.toLowerCase()+(ST.tipo?' ('+tipoNom(ST.tipo)+')':'')+'. Cambia el tipo o la pestaña en la barra de arriba.');ULT={pers:[]};publicar(null);return;}
+  if(!pers.length){mostrarVacio('No hay registros de '+cfg.nom.toLowerCase()+(ST.tipo?' ('+tNom(ST.tipo)+')':'')+'. Cambia el tipo o la pestaña en la barra de arriba.');ULT={pers:[]};publicar(null);return;}
   if(!ST.per||pers.indexOf(ST.per)<0){var cerr=pers.filter(function(k){return !enCurso(ST.modo,k);});ST.per=cerr.length?cerr[cerr.length-1]:pers[pers.length-1];}
   $('fPer').innerHTML=pers.slice().reverse().map(function(k){return '<option value="'+k+'"'+(k===ST.per?' selected':'')+'>'+esc(perNom(ST.modo,k))+'</option>';}).join('');
   var iP=pers.indexOf(ST.per);$('bPrev').disabled=iP<=0;$('bNext').disabled=iP>=pers.length-1;
@@ -1167,22 +1188,22 @@ var PNOM={semana:['semana','semanas'],mes:['mes','meses'],anio:['año','años']}
 function analizar(c,lst){
   var cfg=c.cfg,ind=c.ind,i=c.pers.indexOf(ST.per),ks=c.pers.slice(Math.max(0,i-6),i+1),cur=ks.length-1;
   var by={};ks.forEach(function(k){by[k]=[];});c.rows.forEach(function(o){var k=o[ST.modo];if(by[k])by[k].push(o);});
-  var pp={},rk={};
-  ks.forEach(function(k){pp[k]=porPersona(by[k],cfg);
-    var ok=Object.keys(pp[k]).filter(function(p){return baseDe(pp[k][p],cfg)>=c.minN&&val(pp[k][p],ind)!=null;});
-    if(ok.length<3||ind.dir===0){rk[k]=null;return;}
-    var vs=ok.map(function(p){return val(pp[k][p],ind)*(ind.dir>0?1:-1);});
-    rk[k]={};ok.forEach(function(p,j){var v=vs[j],peor=0,igual=0;vs.forEach(function(w){if(w<v)peor++;else if(w===v)igual++;});
-      rk[k][p]=Math.round(100*(peor+(igual-1)/2)/(ok.length-1));});
+  var pp={},rk={},pa={},porA=!!cfg.area;
+  ks.forEach(function(k){pp[k]=porPersona(by[k],cfg);rk[k]={};
+    if(porA){pa[k]=ppArea(by[k],cfg);Object.keys(pa[k]).forEach(function(t){var r=rankDe(pa[k][t],cfg,ind,c.minN);if(r)Object.keys(r.pt).forEach(function(p){rk[k][p+'|'+t]={pt:r.pt[p],pos:r.pos[p],n:r.n};});});}
+    else{var r=rankDe(pp[k],cfg,ind,c.minN);if(r)Object.keys(r.pt).forEach(function(p){rk[k][p]={pt:r.pt[p],pos:r.pos[p],n:r.n};});}
   });
+  var rkDe=function(k,p,t){var o=rk[k]&&rk[k][porA?p+'|'+t:p];return o||null;};
   var volCurso=ind.k==='vol'&&enCurso(ST.modo,ST.per),pn=PNOM[ST.modo];
   var ifcFalta={};if(ST.g==='ifc')c.rCur.forEach(function(o){if(o.carga>0&&!(o.mina>0))ifcFalta[o.p]=(ifcFalta[o.p]||0)+1;});
   var res={todas:lst.length,alerta:0,mejora:0,empeora:0,pocos:0};
   lst.forEach(function(x){
-    x.al=[];x.pt=null;x.dh=null;x.hv=null;x.nh=0;x.tend='flat';
+    x.al=[];x.pt=null;x.posA=null;x.nA=null;x.areas=null;x.dh=null;x.hv=null;x.nh=0;x.tend='flat';
     if(ifcFalta[x.p])x.al.push({t:'Faltan horas en '+ifcFalta[x.p]+' día'+(ifcFalta[x.p]>1?'s':''),c:'amb'});
     if(!x.ok){res.pocos++;if(x.al.length)res.alerta++;return;}
-    if(rk[ST.per]&&rk[ST.per][x.p]!=null)x.pt=rk[ST.per][x.p];
+    var r0=rkDe(ST.per,x.p,x.area);if(r0){x.pt=r0.pt;x.posA=r0.pos;x.nA=r0.n;}
+    if(porA&&Object.keys(x.a._t).length>1){x.areas=Object.keys(x.a._t).map(function(t){var q=pa[ST.per][t]&&pa[ST.per][t][x.p],rr=rkDe(ST.per,x.p,t);
+      return {t:t,b:q?baseDe(q,cfg):0,v:q?val(q,ind):null,ok:!!(q&&baseDe(q,cfg)>=c.minN),pt:rr?rr.pt:null,pos:rr?rr.pos:null,n:rr?rr.n:null};}).sort(function(a,b){return b.b-a.b;});}
     /* su propio promedio de los 3 períodos anteriores con datos suficientes (ponderado) */
     var prev=[];for(var j=cur-1;j>=0&&prev.length<3;j--){var a=pp[ks[j]][x.p];if(a&&baseDe(a,cfg)>=c.minN)prev.push(ks[j]);}
     if(prev.length&&!volCurso){
@@ -1201,7 +1222,7 @@ function analizar(c,lst){
         if(nn.filter(function(v){return mejor(sv[cur],v);}).length===nn.length-1)x.al.push({t:'Su mejor marca en '+nn.length+' '+pn[1],c:'bien'});
         if(nn.filter(function(v){return mejor(v,sv[cur]);}).length===nn.length-1)x.al.push({t:'Su peor marca en '+nn.length+' '+pn[1],c:'mal'});
       }
-      var bajo=0;for(var j3=cur;j3>=0;j3--){if(rk[ks[j3]]&&rk[ks[j3]][x.p]!=null&&rk[ks[j3]][x.p]<=33)bajo++;else break;}
+      var bajo=0;for(var j3=cur;j3>=0;j3--){var r3=rkDe(ks[j3],x.p,x.area);if(r3&&r3.pt<=33)bajo++;else break;}
       if(bajo>=2)x.al.push({t:'En el tercio más bajo '+bajo+' '+pn[1]+' seguidos',c:'mal'});
     }
     x.al.sort(function(a,b){var o={mal:0,amb:1,bien:2};return o[a.c]-o[b.c];});
@@ -1209,6 +1230,16 @@ function analizar(c,lst){
     if(x.tend==='bien')res.mejora++;else if(x.tend==='mal')res.empeora++;
   });
   return res;
+}
+function ppArea(rows,cfg){var m={};rows.forEach(function(o){var q=(m[o.t]=m[o.t]||{});(q[o.p]=q[o.p]||nuevo(cfg));sumar(q[o.p],o,cfg);});Object.keys(m).forEach(function(t){Object.keys(m[t]).forEach(function(p){cerrar(m[t][p]);});});return m;}
+function rankDe(pp,cfg,ind,minN){
+  if(ind.dir===0)return null;
+  var ok=Object.keys(pp).filter(function(p){return baseDe(pp[p],cfg)>=minN&&val(pp[p],ind)!=null;});
+  if(ok.length<3)return null;
+  var vs=ok.map(function(p){return val(pp[p],ind)*(ind.dir>0?1:-1);}),r={pt:{},pos:{},n:ok.length};
+  ok.forEach(function(p,j){var v=vs[j],peor=0,igual=0,mejor=0;vs.forEach(function(w){if(w<v)peor++;else if(w===v)igual++;else mejor++;});
+    r.pt[p]=Math.round(100*(peor+(igual-1)/2)/(ok.length-1));r.pos[p]=mejor+1;});
+  return r;
 }
 function colPt(v){return v==null?'#4E6B78':v>=67?'#0F7A5A':v<=33?'#DC2626':'#4E6B78';}
 function clsPt(x){return !x.ok?'pc-gr':x.pt==null?'pc-mid':x.pt>=67?'pc-hi':x.pt<=33?'pc-lo':'pc-mid';}
@@ -1245,8 +1276,10 @@ function filasRanking(c){
   return lst;
 }
 function renderRanking(c){
-  var cfg=c.cfg,ind=c.ind,lst0=filasRanking(c);ULT.rank=lst0;var res=analizar(c,lst0);chipsFiltro(res);var lst=lst0.filter(filtroOk);
-  $('rkTit').textContent='Ranking de '+cfg.quienes+' · '+perNom(ST.modo,ST.per)+(ST.tipo?' · '+tipoNom(ST.tipo):'');
+  var cfg=c.cfg,ind=c.ind,lst0=filasRanking(c);var res=analizar(c,lst0);
+  if(cfg.area&&!ST.tipo&&ind.dir!==0&&!ST.sort)lst0.sort(function(x,y){if(x.ok!==y.ok)return x.ok?-1:1;var a=x.pt==null?-1:x.pt,b=y.pt==null?-1:y.pt;return b-a||x.p.localeCompare(y.p);});
+  ULT.rank=lst0;chipsFiltro(res);var lst=lst0.filter(filtroOk);
+  $('rkTit').textContent='Ranking de '+cfg.quienes+' · '+perNom(ST.modo,ST.per)+(ST.tipo?' · '+tNom(ST.tipo):'');
   var ref=c.ref;
   $('rkSub').textContent=ind.ph+' Entran quienes tienen '+c.minN+' o más '+cfg.baseNom+'; el resto va al final en gris.'+(ref?'':' Menos de 3 '+cfg.quienes+' llegan al mínimo: no hay con quién comparar.');
   if(!lst.length){$('rkTabla').innerHTML='<div class="vacio">'+(ST.q?'Nadie coincide con "'+esc(ST.q)+'" en '+esc(perNom(ST.modo,ST.per))+'.':'Nadie en este filtro en '+esc(perNom(ST.modo,ST.per))+'.')+'</div>';return;}
@@ -1262,8 +1295,8 @@ function renderRanking(c){
   var tb=lst.map(function(x){
     if(x.ok)pos++;
     var est=x.ok?estado(x.v,ref,ind.dir):['Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+cfg.baseNom,'low'];
-    return '<tr class="clic'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'"><td>'+(x.ok?'<span class="pos">'+pos+'</span>':'')+'</td><td class="nm">'+esc(x.p)+'</td>'+
-      (cfg.area&&!ST.tipo?'<td>'+esc(tipoNom(x.area))+'</td>':'')+
+    return '<tr class="clic'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'"><td>'+(x.ok?'<span class="pos">'+(cfg.area&&!ST.tipo?(x.posA||'–'):pos)+'</span>':'')+'</td><td class="nm">'+esc(x.p)+'</td>'+
+      (cfg.area&&!ST.tipo?'<td>'+esc(tNom(x.area))+(x.areas?'<div class="otras">'+x.areas.filter(function(a){return a.t!==x.area;}).map(function(a){return esc(tipoNom(a.t))+' '+(a.pt!=null?a.pt:'—');}).join(' · ')+'</div>':'')+'</td>':'')+
       colsV.map(function(k){var v=valCol(cfg,x.a,k),f=fmtCol(cfg,k);
         if(k===ST.ind&&x.ok&&v!=null&&maxV>0)return '<td class="num"><div class="barcell"><b>'+fmtV(v,f)+'</b><span class="mini"><i style="width:'+Math.max(2,v/maxV*100)+'%;background:'+colEstado(v,ref,ind.dir)+'"></i></span></div></td>';
         return '<td class="num">'+(k===ST.ind?'<b>'+fmtV(v,f)+'</b>':fmtV(v,f))+'</td>';}).join('')+
@@ -1291,10 +1324,11 @@ function renderTarjetas(c,lst){
     var col=x.ok?colPt(x.pt):'#9AA9A4';
     var al=x.al.slice(0,3).map(function(a){return '<span class="al '+a.c+'">'+(a.c==='mal'?'▼ ':a.c==='bien'?'▲ ':'⚠ ')+esc(a.t)+'</span>';}).join('');
     h+='<div class="tp '+clsPt(x)+(x.ok?'':' baja')+(x.al.some(function(a){return a.c==='mal';})?' conal':'')+'" data-p="'+esc(x.p)+'" tabindex="0"><span class="tpb"></span>'+
-      '<div class="tpt">'+anillo(x,ind)+'<div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tipoNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div>'+
-        (x.ok?'<div class="tpos2">Puesto '+pos[x.p]+' de '+okN+'</div>':'<div class="tpos2">Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+esc(cfg.baseNom)+'</div>')+'</div></div>'+
+      '<div class="tpt">'+anillo(x,ind)+'<div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div>'+
+        (x.ok?'<div class="tpos2">'+(cfg.area?(x.posA?'Puesto '+x.posA+' de '+x.nA+' en '+esc(tNom(x.area)):'Sin con quién comparar en '+esc(tNom(x.area))):'Puesto '+pos[x.p]+' de '+okN)+'</div>':'<div class="tpos2">Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+esc(cfg.baseNom)+'</div>')+'</div></div>'+
       '<div class="tpi"><span class="lb">'+esc(ind.nom)+'</span><b>'+fmtV(x.v,ind.fmt)+'</b></div>'+
       '<div class="tph2">'+(textoHist(x,ind)||'<span class="dt flat">Sin '+PNOM[ST.modo][1]+' anteriores para comparar</span>')+'</div>'+
+      (x.areas?'<div class="tpa">'+x.areas.map(function(a){return '<span class="pa '+(!a.ok?'pc-gr':a.pt==null?'pc-mid':a.pt>=67?'pc-hi':a.pt<=33?'pc-lo':'pc-mid')+'"><b>'+(a.pt!=null?a.pt:'—')+'</b>'+esc(tNom(a.t))+(a.pos?' · '+a.pos+' de '+a.n:'')+(a.ok?'':' · pocos datos')+'</span>';}).join('')+'</div>':'')+
       (al?'<div class="tal">'+al+'</div>':'')+
       '<div class="tps"><canvas id="tps'+ix+'"></canvas></div>'+
       '<div class="tpf"><span>'+sec.map(function(k){return '<b>'+fmtV(valCol(cfg,x.a,k),fmtCol(cfg,k))+'</b> '+esc(nomCol(cfg,k).toLowerCase());}).join(' · ')+'</span><button type="button" class="det">Ver detalle →</button></div></div>';
@@ -1423,18 +1457,22 @@ function renderHeat(c){
   if(ks.length<2){$('pHeat').style.display='none';return;}
   $('pHeat').style.display='';
   var by={};ks.forEach(function(k){by[k]=[];});c.rows.forEach(function(o){var k=o[ST.modo];if(by[k])by[k].push(o);});
-  var pp={},refs={};ks.forEach(function(k){pp[k]=porPersona(by[k],cfg);refs[k]=refDe(pp[k],cfg,ind,by[k],c.minN);});
+  var pp={},refs={},paH={},refA={},porA=cfg.area&&!ST.tipo;
+  ks.forEach(function(k){pp[k]=porPersona(by[k],cfg);refs[k]=refDe(pp[k],cfg,ind,by[k],c.minN);
+    if(porA){paH[k]=ppArea(by[k],cfg);refA[k]={};Object.keys(paH[k]).forEach(function(t){refA[k][t]=refDe(paH[k][t],cfg,ind,by[k].filter(function(o){return o.t===t;}),c.minN);});}});
   var ord=(ULT.rank||[]).map(function(x){return x.p;}),vistos={};ord.forEach(function(p){vistos[p]=1;});
   var otros={};ks.forEach(function(k){Object.keys(pp[k]).forEach(function(p){if(!vistos[p]&&(!ST.q||p.indexOf(ST.q)>=0))otros[p]=(otros[p]||0)+baseDe(pp[k][p],cfg);});});
   var lista=ord.concat(Object.keys(otros).sort(function(a,b){return otros[b]-otros[a];}));
   $('htTit').textContent=ind.nom+' por '+(ST.modo==='semana'?'semana':ST.modo==='mes'?'mes':'año')+' · últimos '+ks.length+' períodos';
-  $('htSub').textContent='Cada casilla es el valor de la persona en ese período. Color frente a '+cfg.comp+' del mismo período (una desviación). En gris cursiva: menos de '+c.minN+' '+cfg.baseNom+'. Toca un nombre para ver su ficha.';
+  $('htSub').textContent='Cada casilla es el valor de la persona en ese período'+(porA?' en su área principal':'')+'. Color frente a '+cfg.comp+(porA?' de su misma área':'')+' del mismo período (una desviación). En gris cursiva: menos de '+c.minN+' '+cfg.baseNom+'. Toca un nombre para ver su ficha.';
   var th='<tr><th>'+esc(cfg.quien)+'</th>'+ks.map(function(k){return '<th class="'+(k===ST.per?'act':'')+'">'+esc(perCorto(ST.modo,k))+'</th>';}).join('')+'</tr>';
   var tb=lista.map(function(p){
     return '<tr class="clic" data-p="'+esc(p)+'"><td class="nm">'+esc(p)+'</td>'+ks.map(function(k){var a=pp[k][p];if(!a)return '<td class="c"></td>';
+      var rf=refs[k],tA='';
+      if(porA){tA=areaPrincipal(a);a=paH[k][tA][p];rf=refA[k][tA];}
       var v=val(a,ind),low=baseDe(a,cfg)<c.minN,cl='c ';
-      if(low||v==null)cl+='low';else{var e=estado(v,refs[k],ind.dir)[1];cl+=e==='bien'?'alto':e==='mal'?'bajo':e==='neu'?(v>=refs[k].m?'nalto':'nbajo'):'medio';}
-      return '<td class="'+cl+'" title="'+esc(p+' · '+perNom(ST.modo,k)+' · '+baseDe(a,cfg)+' '+cfg.baseNom)+'">'+fmtCorto(v,ind.fmt)+'</td>';}).join('')+'</tr>';}).join('');
+      if(low||v==null)cl+='low';else{var e=estado(v,rf,ind.dir)[1];cl+=e==='bien'?'alto':e==='mal'?'bajo':e==='neu'?(rf&&v>=rf.m?'nalto':'nbajo'):'medio';}
+      return '<td class="'+cl+'" title="'+esc(p+' · '+perNom(ST.modo,k)+(tA?' · '+tNom(tA):'')+' · '+baseDe(a,cfg)+' '+cfg.baseNom)+'">'+fmtCorto(v,ind.fmt)+'</td>';}).join('')+'</tr>';}).join('');
   $('htTabla').innerHTML='<table class="heat"><thead>'+th+'</thead><tbody>'+tb+'</tbody></table>';
   var ley=ind.dir===0?'<span><i style="background:#E1EAEE"></i>Sobre '+esc(cfg.comp)+'</span><span><i style="background:#F1F6F4"></i>Como '+esc(cfg.comp)+'</span><span><i style="background:#F3F5F6;border:1px solid #DCE5E2"></i>Bajo '+esc(cfg.comp)+'</span>':
     '<span><i style="background:#D8F0E5"></i>Mejor que '+esc(cfg.comp)+'</span><span><i style="background:#F1F6F4"></i>Como '+esc(cfg.comp)+'</span><span><i style="background:#FBE1E1"></i>Peor que '+esc(cfg.comp)+'</span>';
@@ -1493,9 +1531,9 @@ function renderFicha(){
   var iP=pers.indexOf(F.per);$('fPrev').disabled=iP<=0;$('fNext').disabled=iP>=pers.length-1;
   $('fNom').textContent=F.p;
   var rPer=rows.filter(function(o){return o[F.modo]===F.per;}),gPer=rowsG.filter(function(o){return o[F.modo]===F.per;});
-  var a=total(rPer,cfg),gp=porPersona(gPer,cfg);
+  var a=total(rPer,cfg),tP=cfg.area&&rPer.length?areaPrincipal(a):null,gPerA=tP?gPer.filter(function(o){return o.t===tP;}):gPer,gp=porPersona(gPerA,cfg),aA=tP?total(rPer.filter(function(o){return o.t===tP;}),cfg):a;
   var tipos={};rows.forEach(function(o){tipos[o.t]=1;});
-  $('fSub').textContent=cfg.quien+' · '+cfg.nom+(ST.tipo?' · '+tipoNom(ST.tipo):'')+' · '+perNom(F.modo,F.per)+' · '+(cfg.base==='dias'?a.dias+' día(s)':fmtV(baseDe(a,cfg),'int')+' '+cfg.baseNom)+(rows.length?' · registros del '+fechaNom(rows[0].fecha)+' al '+fechaNom(rows[rows.length-1].fecha):'');
+  $('fSub').textContent=cfg.quien+' · '+cfg.nom+(ST.tipo?' · '+tNom(ST.tipo):'')+' · '+perNom(F.modo,F.per)+' · '+(cfg.base==='dias'?a.dias+' día(s)':fmtV(baseDe(a,cfg),'int')+' '+cfg.baseNom)+(rows.length?' · registros del '+fechaNom(rows[0].fecha)+' al '+fechaNom(rows[rows.length-1].fecha):'');
   /* KPIs de la persona */
   var prevK=iP>0?pers[iP-1]:null,ap=prevK?total(rows.filter(function(o){return o[F.modo]===prevK;}),cfg):null;
   var lista=cfg.kpis.slice();var i0=lista.indexOf(F.ind);if(i0>0){lista.splice(i0,1);lista.unshift(F.ind);}else if(i0<0)lista.unshift(F.ind);
@@ -1504,9 +1542,10 @@ function renderFicha(){
     var id=cfg.inds[k],v=val(a,id),vp=ap?val(ap,id):null,dv=(v!=null&&vp!=null&&!(id.k==='vol'&&enCurso(F.modo,F.per)))?v-vp:null;
     var ok=Object.keys(gp).filter(function(p){return baseDe(gp[p],cfg)>=minN&&val(gp[p],id)!=null;});
     var srt=ok.slice().sort(function(x,y){var vx=val(gp[x],id),vy=val(gp[y],id);return id.dir<0?vx-vy:vy-vx;});
-    var pos=srt.indexOf(F.p),ref=refDe(gp,cfg,id,gPer,minN);
-    var gv=id.k==='vol'?(ref?ref.m:null):val(total(gPer,cfg),id);
-    var sub=subUniverso(cfg,k,a)+(gv!=null?' · '+cfg.todos+' '+fmtV(gv,id.fmt)+(id.k==='vol'?' por persona':''):'')+(pos>=0?' · puesto '+(pos+1)+' de '+srt.length:'')+(baja&&i===0?' · muestra baja ('+baseDe(a,cfg)+' de '+minN+' '+cfg.baseNom+')':'');
+    var pos=srt.indexOf(F.p),ref=refDe(gp,cfg,id,gPerA,minN);
+    var gv=id.k==='vol'?(ref?ref.m:null):val(total(gPerA,cfg),id);
+    var enA=tP?' en '+tNom(tP):'';
+    var sub=subUniverso(cfg,k,a)+(gv!=null?' · '+cfg.todos+enA+' '+fmtV(gv,id.fmt)+(id.k==='vol'?' por persona':''):'')+(pos>=0?' · puesto '+(pos+1)+' de '+srt.length+enA+(tP&&Object.keys(a._t).length>1?' (ahí '+fmtV(val(aA,id),id.fmt)+')':''):'')+(baja&&i===0?' · muestra baja ('+baseDe(a,cfg)+' de '+minN+' '+cfg.baseNom+')':'');
     h+='<div class="kpi'+(i===0?' hero':'')+(id.fmt==='money'?' money':(id.dir===0&&i>0?' neutro':''))+'"><span class="banda"></span><div class="cuerpo"><div class="l">'+esc(id.nom)+(i===0?'<span class="chip">'+esc(perCorto(F.modo,F.per))+'</span>':'')+'</div><div class="row"><span class="v">'+fmtV(v,id.fmt)+'</span>'+
       (dv!=null?'<span class="d '+clsDelta(dv,id.dir)+'">'+fmtDelta(dv,id.fmt)+'</span>':'')+'</div><div class="s">'+esc(sub)+(prevK&&vp!=null?esc(' · vs '+fmtV(vp,id.fmt)+' en '+perNom(F.modo,prevK)):'')+'</div></div></div>';
   });
@@ -1552,15 +1591,20 @@ function renderFicha(){
   if(tks.length<2){$('fpTipo').style.display='none';}
   else{$('fpTipo').style.display='';$('fTpTit').textContent=(cfg.area?'Por área':'Por tipo de auditoría')+' · '+perNom(F.modo,F.per);$('fTpSub').textContent='Mismos cálculos que el ranking, separados por '+(cfg.area?'área':'tipo')+'.';
     var cols=cfg.cols.indexOf(F.ind)<0?cfg.cols.concat([F.ind]):cfg.cols;
-    $('fTpTabla').innerHTML='<table><thead><tr><th>'+(cfg.area?'Área':'Tipo')+'</th>'+cols.map(function(k){return '<th class="num">'+esc(nomCol(cfg,k))+'</th>';}).join('')+'</tr></thead><tbody>'+
-      tks.sort(function(x,y){return baseDe(porT[y],cfg)-baseDe(porT[x],cfg);}).map(function(t){return '<tr><td class="nm">'+esc(tipoNom(t))+'</td>'+cols.map(function(k){return '<td class="num">'+fmtV(valCol(cfg,porT[t],k),fmtCol(cfg,k))+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
+    var conPt=cfg.area&&ind.dir!==0,paF=conPt?ppArea(gPer,cfg):null;
+    $('fTpTabla').innerHTML='<table><thead><tr><th>'+(cfg.area?'Área':'Tipo')+'</th>'+cols.map(function(k){return '<th class="num">'+esc(nomCol(cfg,k))+'</th>';}).join('')+(conPt?'<th class="num">Puntaje</th><th class="num">Puesto</th>':'')+'</tr></thead><tbody>'+
+      tks.sort(function(x,y){return baseDe(porT[y],cfg)-baseDe(porT[x],cfg);}).map(function(t){
+        var rr=conPt&&paF[t]?rankDe(paF[t],cfg,ind,minN):null,pt=rr&&rr.pt[F.p]!=null?rr.pt[F.p]:null;
+        return '<tr><td class="nm">'+esc(tNom(t))+'</td>'+cols.map(function(k){return '<td class="num">'+fmtV(valCol(cfg,porT[t],k),fmtCol(cfg,k))+'</td>';}).join('')+
+          (conPt?'<td class="num">'+(pt!=null?'<span class="ptb '+(pt>=67?'pc-hi':pt<=33?'pc-lo':'pc-mid')+'">'+pt+'</span>':'—')+'</td><td class="num">'+(pt!=null?rr.pos[F.p]+' de '+rr.n:'—')+'</td>':'')+'</tr>';}).join('')+'</tbody></table>';
+    if(conPt)$('fTpSub').textContent='Puntaje y puesto dentro de cada área, con '+PNOM[F.modo][0]+' '+perNom(F.modo,F.per)+'.';}
   /* día por día */
   var dias=rPer.slice().sort(function(x,y){return y.fecha.localeCompare(x.fecha)||x.t.localeCompare(y.t);});
   var raw=cfg.f.filter(function(k){return k!=='mingE'&&k!=='s';});
   $('fDiSub').textContent=(ST.g==='potenciales'?'Una fila por semana y área':'Una fila por día'+(cfg.tipos?' y tipo':''))+' de '+perNom(F.modo,F.per)+'. Lo más reciente arriba.';
   var lim=dias.slice(0,500),extra=raw.indexOf(ind._key)<0;
   $('fDiTabla').innerHTML='<table><thead><tr><th>'+(ST.g==='potenciales'?'Semana':'Fecha')+'</th>'+(cfg.tipos?'<th>'+(cfg.area?'Área':'Tipo')+'</th>':'')+raw.map(function(k){return '<th class="num">'+esc(cfg.nombres[k]||k)+'</th>';}).join('')+(extra?'<th class="num">'+esc(ind.nom)+'</th>':'')+'</tr></thead><tbody>'+
-    lim.map(function(o){var t=nuevo(cfg);sumar(t,o,cfg);cerrar(t);return '<tr><td>'+(ST.g==='potenciales'?perNom('semana',o.semana):fechaNom(o.fecha))+'</td>'+(cfg.tipos?'<td>'+esc(tipoNom(o.t))+'</td>':'')+raw.map(function(k){return '<td class="num">'+fmtV(o[k],k==='inc'?'money':(k==='mp'||k==='ma'||k==='ming'||k==='mina')?'dec1':'int')+'</td>';}).join('')+(extra?'<td class="num"><b>'+fmtV(val(t,ind),ind.fmt)+'</b></td>':'')+'</tr>';}).join('')+'</tbody></table>'+
+    lim.map(function(o){var t=nuevo(cfg);sumar(t,o,cfg);cerrar(t);return '<tr><td>'+(ST.g==='potenciales'?perNom('semana',o.semana):fechaNom(o.fecha))+'</td>'+(cfg.tipos?'<td>'+esc(tNom(o.t))+'</td>':'')+raw.map(function(k){return '<td class="num">'+fmtV(o[k],k==='inc'?'money':(k==='mp'||k==='ma'||k==='ming'||k==='mina')?'dec1':'int')+'</td>';}).join('')+(extra?'<td class="num"><b>'+fmtV(val(t,ind),ind.fmt)+'</b></td>':'')+'</tr>';}).join('')+'</tbody></table>'+
     (dias.length>500?'<div class="lsTope500">Se muestran los 500 registros más recientes de '+dias.length+'. Usa los filtros para ver los demás.</div>':'');
   reajustarGrids();
 }
@@ -1571,7 +1615,7 @@ function publicar(c){
     listo:function(){return !!(ULT&&ULT.rCur);},
     excel:function(){
       var c=ULT;if(!c||!c.rCur)throw new Error('no hay datos en pantalla');
-      var cfg=c.cfg,ind=c.ind,lbl=perNom(ST.modo,ST.per)+(ST.tipo?' · '+tipoNom(ST.tipo):'')+(ST.q?' · búsqueda "'+ST.q+'"':'');
+      var cfg=c.cfg,ind=c.ind,lbl=perNom(ST.modo,ST.per)+(ST.tipo?' · '+tNom(ST.tipo):'')+(ST.q?' · búsqueda "'+ST.q+'"':'');
       var tc=total(c.rCur,cfg),tp=c.prevK?total(c.rPrev,cfg):null,res=[];
       var lista=cfg.kpis.indexOf(ST.ind)<0?[ST.ind].concat(cfg.kpis):cfg.kpis;
       var tipoX=function(f){return f==='pct'?'porcentaje':f==='money'?'moneda':f==='int'?'entero':'decimal';};
@@ -1581,13 +1625,13 @@ function publicar(c){
         filas:lista.map(function(k){var id=cfg.inds[k];return {k:id.nom,v:fmtV(val(tc,id),id.fmt),a:tp?fmtV(val(tp,id),id.fmt):null,u:subUniverso(cfg,k,tc)};})});
       var cols=cfg.cols.indexOf(ST.ind)<0?cfg.cols.concat([ST.ind]):cfg.cols,pos=0;
       var colsX=[{campo:'pos',titulo:'#',tipo:'entero'},{campo:'p',titulo:cfg.quien,tipo:'texto'}].concat(cfg.area&&!ST.tipo?[{campo:'ar',titulo:'Área',tipo:'texto'}]:[]).concat(cols.map(function(k){return {campo:'c_'+k,titulo:nomCol(cfg,k),tipo:tipoX(fmtCol(cfg,k))};}))
-        .concat([{campo:'dv',titulo:'Cambio vs '+(c.prevK?perNom(ST.modo,c.prevK):'anterior')+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'}]).concat(ind.dir!==0?[{campo:'pt',titulo:'Puntaje (0-100)',tipo:'entero'}]:[]).concat([{campo:'dh',titulo:'Cambio vs su promedio anterior'+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'},{campo:'al',titulo:'Alertas',tipo:'texto'},{campo:'es',titulo:'Frente a '+cfg.comp,tipo:'texto'}]);
+        .concat([{campo:'dv',titulo:'Cambio vs '+(c.prevK?perNom(ST.modo,c.prevK):'anterior')+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'}]).concat(ind.dir!==0?[{campo:'pt',titulo:'Puntaje (0-100)',tipo:'entero'}].concat(cfg.area?[{campo:'pa',titulo:'Puntaje y puesto por área',tipo:'texto'}]:[]):[]).concat([{campo:'dh',titulo:'Cambio vs su promedio anterior'+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'},{campo:'al',titulo:'Alertas',tipo:'texto'},{campo:'es',titulo:'Frente a '+cfg.comp,tipo:'texto'}]);
       res.push({titulo:'Ranking — '+ind.nom,nota:ind.ph+' Mínimo para entrar al orden: '+c.minN+' '+cfg.baseNom+'.'+(ind.dir!==0?' Puntaje = posición entre '+cfg.comp+' (100 la mejor, 0 la última).':'')+' Promedio anterior = sus '+PNOM[ST.modo][1]+' anteriores con datos suficientes (hasta 3).',columnas:colsX,
-        filas:(c.rank||[]).map(function(x){if(x.ok)pos++;var o={pos:x.ok?pos:null,p:x.p,ar:tipoNom(x.area),dv:x.dv,pt:x.pt,dh:x.dh,al:(x.al||[]).map(function(q){return q.t;}).join(' · ')||null,es:x.ok?estado(x.v,c.ref,ind.dir)[0]:'Muestra baja'};
+        filas:(c.rank||[]).map(function(x){if(x.ok)pos++;var o={pos:x.ok?pos:null,p:x.p,ar:tNom(x.area),dv:x.dv,pt:x.pt,pa:x.areas?x.areas.map(function(q){return tNom(q.t)+' '+(q.pt!=null?q.pt:'—')+(q.pos?' ('+q.pos+' de '+q.n+')':'');}).join(' · '):(cfg.area&&x.posA?tNom(x.area)+' '+x.pt+' ('+x.posA+' de '+x.nA+')':null),al:(x.al||[]).map(function(q){return q.t;}).join(' · ')||null,es:x.ok?estado(x.v,c.ref,ind.dir)[0]:'Muestra baja'};
           cols.forEach(function(k){o['c_'+k]=conv(valCol(cfg,x.a,k),fmtCol(cfg,k));});return o;})});
       var raw=cfg.f.filter(function(k){return k!=='mingE';});
       var det=c.rCur.filter(function(o){return !ST.q||o.p.indexOf(ST.q)>=0;}).slice().sort(function(x,y){return y.fecha.localeCompare(x.fecha)||x.p.localeCompare(y.p);}).map(function(o){
-        var r={f:new Date(o.fecha+'T12:00:00'),p:o.p,t:tipoNom(o.t)};raw.forEach(function(k){r[k]=o[k];});return r;});
+        var r={f:new Date(o.fecha+'T12:00:00'),p:o.p,t:tNom(o.t)};raw.forEach(function(k){r[k]=o[k];});return r;});
       return {titulo:'Desempeño del personal — '+cfg.nom,sub:lbl,origen:'Desempeño del personal',resumen:res,
         detalle:{congelarCols:2,nota:'Una fila por persona y '+(ST.g==='potenciales'?'semana (fecha = lunes)':'día')+' del período, con los filtros de la pantalla.',filas:det,
           columnas:[{campo:'f',titulo:'Fecha',tipo:'fecha'},{campo:'p',titulo:cfg.quien,tipo:'texto'},{campo:'t',titulo:cfg.area?'Área':'Tipo',tipo:'texto'}].concat(raw.map(function(k){return {campo:k,titulo:cfg.nombres[k]||k,tipo:(k==='inc'?'moneda':(k==='mp'||k==='ma'||k==='ming'||k==='mina'||k==='s')?'decimal':'entero')};}))}};
