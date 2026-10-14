@@ -717,6 +717,40 @@ tr.baja td.nm{color:#9AA9A4;}
 .tp.baja{background:#FAFBFB;} .tp.baja .nm,.tp.baja .tpm b{color:#8A9994;}
 @media(max-width:600px){.tgrid{grid-template-columns:1fr;}.tpv .v{font-size:30px;}}
 @media print{.tp{break-inside:avoid;}}
+/* puntaje y alertas (v1.2) */
+.pc-hi{--c:#0F7A5A;} .pc-mid{--c:#4E6B78;} .pc-lo{--c:#DC2626;} .pc-gr{--c:#9AA9A4;}
+html[data-tema="oscuro"] .pc-hi{--c:#3CC495;} html[data-tema="oscuro"] .pc-mid{--c:#9DBBC8;} html[data-tema="oscuro"] .pc-lo{--c:#F47C7C;} html[data-tema="oscuro"] .pc-gr{--c:#6F8781;}
+html[data-tema="oscuro"] .ptb{color:#0A1C19;}
+html[data-tema="oscuro"] .ring .rt{stroke:#28463F;}
+.fils{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px;}
+.fch{font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid #DCE5E2;background:#fff;color:#5F726C;border-radius:20px;padding:6px 12px;cursor:pointer;}
+.fch b{margin-left:4px;color:#333;} .fch:hover{border-color:#0F7A5A;}
+.fch.on{background:#0F7A5A;border-color:#0F7A5A;color:#fff;} .fch.on b{color:#fff;}
+.fch-alerta{color:#B42318;} .fch-empeora{color:#DC2626;} .fch-mejora{color:#0F7A5A;}
+.tp .tpt{display:flex;align-items:center;gap:12px;}
+.ring{position:relative;width:76px;height:76px;flex:none;}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ring .rt{fill:none;stroke:#E8EFEC;stroke-width:7;}
+.ring .rv{fill:none;stroke:var(--c);stroke-width:7;stroke-linecap:round;transition:stroke-dasharray .9s cubic-bezier(.2,.8,.2,1);}
+.ring .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;}
+.ring .rc b{font-size:24px;font-weight:700;color:var(--c);} .ring .rc b.sm{font-size:15px;}
+.ring .rc span{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#5F726C;margin-top:3px;}
+.tpos2{font-size:11px;font-weight:700;color:#4E6B78;margin-top:3px;}
+.tpi{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-top:1px solid #F1F6F4;padding-top:8px;}
+.tpi .lb{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#5F726C;}
+.tpi b{font-size:20px;color:#333;}
+.tph2{font-size:11.5px;color:#5F726C;}
+.tal{display:flex;flex-wrap:wrap;gap:5px;}
+.al{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;white-space:nowrap;}
+.al.mal{background:#FCEBEB;color:#B42318;} .al.bien{background:#E7F4EF;color:#0B815E;} .al.amb{background:#FEF3E2;color:#B45309;} .al.mas{background:#F1F6F4;color:#5F726C;}
+.tp.conal{border-color:#F3B4B4;}
+.tpf{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #F1F6F4;padding-top:8px;margin-top:auto;font-size:11px;color:#5F726C;}
+.tpf b{color:#333;font-size:12px;}
+.tpf .det{font-family:inherit;font-size:12px;font-weight:700;color:#0F7A5A;background:none;border:none;cursor:pointer;padding:4px 0;white-space:nowrap;}
+.btn.det{padding:5px 10px;font-size:12px;}
+.ptb{display:inline-block;min-width:36px;text-align:center;font-weight:700;color:#fff;background:var(--c);border-radius:12px;padding:2px 8px;}
+td.alc{white-space:normal;min-width:170px;}
+@media(max-width:600px){.ring{width:68px;height:68px;}.ring .rc b{font-size:21px;}.fils{flex-wrap:nowrap;overflow-x:auto;}.fch{flex:none;min-height:40px;}}
 /* errores y toast */
 .err{display:none;background:#FBE9E9;border:1px solid var(--rose);border-radius:8px;padding:12px 16px;color:var(--rose);font-size:13px;margin-bottom:16px;align-items:center;gap:12px;flex-wrap:wrap;}
 .err.on{display:flex;}
@@ -800,6 +834,7 @@ body.modal{overflow:hidden;}
         <span class="tira resultado"></span>
         <div class="pt" id="rkTit">Ranking</div>
         <div class="ph" id="rkSub"></div>
+        <div class="fils" id="rkFil"></div>
         <div class="tscroll" id="rkTabla"></div>
       </div>
     </div>
@@ -914,7 +949,7 @@ var GR={
 var ORDEN_G=['auditoras','inspectoras','ifc','acabados','potenciales'];
 
 /* ------------------------------------------------------------------ estado */
-var ST={g:'auditoras',modo:'mes',per:null,tipo:'',ind:null,q:'',sort:null,sdir:0,vista:'tarj'};
+var ST={g:'auditoras',modo:'mes',per:null,tipo:'',ind:null,q:'',sort:null,sdir:0,vista:'tarj',filtro:'todas'};
 var DATA={}, CARGA={}, charts={}, ULT=null;
 
 /* ------------------------------------------------------------------ utilidades */
@@ -1127,6 +1162,72 @@ function subUniverso(cfg,k,a){
 }
 
 /* ---- ranking */
+/* ---- puntaje, historia propia y alertas de cada persona */
+var PNOM={semana:['semana','semanas'],mes:['mes','meses'],anio:['año','años']};
+function analizar(c,lst){
+  var cfg=c.cfg,ind=c.ind,i=c.pers.indexOf(ST.per),ks=c.pers.slice(Math.max(0,i-6),i+1),cur=ks.length-1;
+  var by={};ks.forEach(function(k){by[k]=[];});c.rows.forEach(function(o){var k=o[ST.modo];if(by[k])by[k].push(o);});
+  var pp={},rk={};
+  ks.forEach(function(k){pp[k]=porPersona(by[k],cfg);
+    var ok=Object.keys(pp[k]).filter(function(p){return baseDe(pp[k][p],cfg)>=c.minN&&val(pp[k][p],ind)!=null;});
+    if(ok.length<3||ind.dir===0){rk[k]=null;return;}
+    var vs=ok.map(function(p){return val(pp[k][p],ind)*(ind.dir>0?1:-1);});
+    rk[k]={};ok.forEach(function(p,j){var v=vs[j],peor=0,igual=0;vs.forEach(function(w){if(w<v)peor++;else if(w===v)igual++;});
+      rk[k][p]=Math.round(100*(peor+(igual-1)/2)/(ok.length-1));});
+  });
+  var volCurso=ind.k==='vol'&&enCurso(ST.modo,ST.per),pn=PNOM[ST.modo];
+  var ifcFalta={};if(ST.g==='ifc')c.rCur.forEach(function(o){if(o.carga>0&&!(o.mina>0))ifcFalta[o.p]=(ifcFalta[o.p]||0)+1;});
+  var res={todas:lst.length,alerta:0,mejora:0,empeora:0,pocos:0};
+  lst.forEach(function(x){
+    x.al=[];x.pt=null;x.dh=null;x.hv=null;x.nh=0;x.tend='flat';
+    if(ifcFalta[x.p])x.al.push({t:'Faltan horas en '+ifcFalta[x.p]+' día'+(ifcFalta[x.p]>1?'s':''),c:'amb'});
+    if(!x.ok){res.pocos++;if(x.al.length)res.alerta++;return;}
+    if(rk[ST.per]&&rk[ST.per][x.p]!=null)x.pt=rk[ST.per][x.p];
+    /* su propio promedio de los 3 períodos anteriores con datos suficientes (ponderado) */
+    var prev=[];for(var j=cur-1;j>=0&&prev.length<3;j--){var a=pp[ks[j]][x.p];if(a&&baseDe(a,cfg)>=c.minN)prev.push(ks[j]);}
+    if(prev.length&&!volCurso){
+      var r=[];prev.forEach(function(k){by[k].forEach(function(o){if(o.p===x.p)r.push(o);});});
+      var hv=val(total(r,cfg),ind);if(hv!=null&&ind.k==='vol')hv=hv/prev.length;
+      if(hv!=null&&x.v!=null){x.hv=hv;x.nh=prev.length;x.dh=x.v-hv;x.tend=clsDelta(x.dh,ind.dir);}
+    }
+    if(ind.dir!==0&&!volCurso){
+      var sv=ks.map(function(k){var a=pp[k][x.p];return a&&baseDe(a,cfg)>=c.minN?val(a,ind):null;});
+      var mejor=function(a,b){return ind.dir>0?a>b+1e-9:a<b-1e-9;};
+      var cae=0,sube=0;for(var j2=cur;j2>0&&sv[j2]!=null&&sv[j2-1]!=null;j2--){if(mejor(sv[j2-1],sv[j2])){if(sube)break;cae++;}else if(mejor(sv[j2],sv[j2-1])){if(cae)break;sube++;}else break;}
+      if(cae>=2)x.al.push({t:'Baja '+cae+' '+pn[1]+' seguidos',c:'mal'});
+      if(sube>=2)x.al.push({t:'Sube '+sube+' '+pn[1]+' seguidos',c:'bien'});
+      var nn=sv.filter(function(v){return v!=null;});
+      if(nn.length>=4&&sv[cur]!=null){
+        if(nn.filter(function(v){return mejor(sv[cur],v);}).length===nn.length-1)x.al.push({t:'Su mejor marca en '+nn.length+' '+pn[1],c:'bien'});
+        if(nn.filter(function(v){return mejor(v,sv[cur]);}).length===nn.length-1)x.al.push({t:'Su peor marca en '+nn.length+' '+pn[1],c:'mal'});
+      }
+      var bajo=0;for(var j3=cur;j3>=0;j3--){if(rk[ks[j3]]&&rk[ks[j3]][x.p]!=null&&rk[ks[j3]][x.p]<=33)bajo++;else break;}
+      if(bajo>=2)x.al.push({t:'En el tercio más bajo '+bajo+' '+pn[1]+' seguidos',c:'mal'});
+    }
+    x.al.sort(function(a,b){var o={mal:0,amb:1,bien:2};return o[a.c]-o[b.c];});
+    if(x.al.some(function(a){return a.c!=='bien';}))res.alerta++;
+    if(x.tend==='bien')res.mejora++;else if(x.tend==='mal')res.empeora++;
+  });
+  return res;
+}
+function colPt(v){return v==null?'#4E6B78':v>=67?'#0F7A5A':v<=33?'#DC2626':'#4E6B78';}
+function clsPt(x){return !x.ok?'pc-gr':x.pt==null?'pc-mid':x.pt>=67?'pc-hi':x.pt<=33?'pc-lo':'pc-mid';}
+function anillo(x,ind){
+  var v=x.pt,col=x.ok?colPt(v):'#9AA9A4',L=2*Math.PI*30,d=v==null?0:L*v/100;
+  var cen=v!=null?'<b>'+v+'</b><span>puntaje</span>':(x.ok?'<b class="sm">'+fmtCorto(x.v,ind.fmt)+'</b><span>'+esc(ind.nom.length>14?'valor':ind.nom)+'</span>':'<b class="sm">—</b><span>pocos datos</span>');
+  return '<div class="ring"><svg viewBox="0 0 72 72" aria-hidden="true"><circle class="rt" cx="36" cy="36" r="30"/><circle class="rv" cx="36" cy="36" r="30" stroke-dasharray="'+d.toFixed(1)+' '+L.toFixed(1)+'"/></svg><div class="rc">'+cen+'</div></div>';
+}
+function textoHist(x,ind){
+  if(x.dh==null)return '';
+  return '<span class="dt '+x.tend+'">'+fmtDelta(x.dh,ind.fmt)+'</span> vs su promedio de '+(x.nh>1?'los '+x.nh+' '+PNOM[ST.modo][1]+' anteriores':'el '+PNOM[ST.modo][0]+' anterior')+' ('+fmtV(x.hv,ind.fmt)+')';
+}
+function filtroOk(x){var f=ST.filtro||'todas';if(f==='todas')return true;if(f==='alerta')return x.al.some(function(a){return a.c!=='bien';});if(f==='mejora')return x.tend==='bien';if(f==='empeora')return x.tend==='mal';if(f==='pocos')return !x.ok;return true;}
+function chipsFiltro(res){
+  var it=[['todas','Todas',res.todas],['alerta','⚠ Con alertas',res.alerta],['mejora','▲ Mejorando',res.mejora],['empeora','▼ Empeorando',res.empeora],['pocos','Pocos datos',res.pocos]];
+  if(!it.some(function(t){return t[0]===ST.filtro&&t[2]>0;}))ST.filtro='todas';
+  $('rkFil').innerHTML=it.filter(function(t){return t[0]==='todas'||t[2]>0;}).map(function(t){return '<button type="button" data-f="'+t[0]+'" class="fch fch-'+t[0]+(ST.filtro===t[0]?' on':'')+'">'+t[1]+' <b>'+t[2]+'</b></button>';}).join('');
+  [].forEach.call($('rkFil').children,function(b){b.onclick=function(){ST.filtro=b.dataset.f;renderRanking(ULT);reajustarGrids();plegarTablasEnCelular();};});
+}
 function filasRanking(c){
   var cfg=c.cfg,ind=c.ind;
   var lst=Object.keys(c.pCur).filter(function(p){return !ST.q||p.indexOf(ST.q)>=0;}).map(function(p){
@@ -1144,13 +1245,11 @@ function filasRanking(c){
   return lst;
 }
 function renderRanking(c){
-  var cfg=c.cfg,ind=c.ind,lst=filasRanking(c);ULT.rank=lst;
+  var cfg=c.cfg,ind=c.ind,lst0=filasRanking(c);ULT.rank=lst0;var res=analizar(c,lst0);chipsFiltro(res);var lst=lst0.filter(filtroOk);
   $('rkTit').textContent='Ranking de '+cfg.quienes+' · '+perNom(ST.modo,ST.per)+(ST.tipo?' · '+tipoNom(ST.tipo):'');
   var ref=c.ref;
-  $('rkSub').textContent=ind.ph+' Ordenado por '+ind.nom.toLowerCase()+(ST.sort&&ST.sort!==ST.ind?' (cambiado con el encabezado)':'')+'. Entran al orden quienes tienen '+c.minN+' o más '+cfg.baseNom+' en el período; el resto va al final en gris.'+
-    (ref?' Valor de '+cfg.todos+' '+fmtV(ref.m,ind.fmt)+(ind.k==='vol'?' por persona':'')+'; "Sobre/Bajo '+cfg.comp+'" = a más de '+fmtV(ref.sd,ind.fmt==='pct'?'dec1':ind.fmt)+(ind.fmt==='pct'?' pts':'')+' (una desviación) de ese valor.':' Menos de 3 '+cfg.quienes+' llegan al mínimo: no hay con quién comparar.')+
-    (ST.vista==='tarj'?' La línea de cada tarjeta: sus últimos 8 períodos.':'')+(cfg.nota&&!ST.tipo?' '+cfg.nota:'');
-  if(!lst.length){$('rkTabla').innerHTML='<div class="vacio">Nadie coincide con "'+esc(ST.q)+'" en '+esc(perNom(ST.modo,ST.per))+'.</div>';return;}
+  $('rkSub').textContent=ind.ph+' Entran quienes tienen '+c.minN+' o más '+cfg.baseNom+'; el resto va al final en gris.'+(ref?'':' Menos de 3 '+cfg.quienes+' llegan al mínimo: no hay con quién comparar.');
+  if(!lst.length){$('rkTabla').innerHTML='<div class="vacio">'+(ST.q?'Nadie coincide con "'+esc(ST.q)+'" en '+esc(perNom(ST.modo,ST.per))+'.':'Nadie en este filtro en '+esc(perNom(ST.modo,ST.per))+'.')+'</div>';return;}
   if(ST.vista==='tarj'){$('pRank').classList.remove('plegable-si','plegable','plegado');var vb=$('pRank').querySelector('.verdet');if(vb)vb.remove();renderTarjetas(c,lst);return;}
   $('pRank').classList.add('plegable-si');
   var cols=cfg.cols,sk=ST.sort||ST.ind;
@@ -1158,7 +1257,7 @@ function renderRanking(c){
   var th='<tr><th>#</th><th class="ord'+(sk==='_p'?' on':'')+'" data-k="_p">'+esc(cfg.quien)+'</th>'+(cfg.area&&!ST.tipo?'<th>Área</th>':'')+
     cols.map(function(k){return '<th class="num ord'+(sk===k?' on':'')+'" data-k="'+k+'">'+esc(nomCol(cfg,k))+'</th>';}).join('')+
     (cols.indexOf(ST.ind)<0?'<th class="num ord'+(sk===ST.ind?' on':'')+'" data-k="'+ST.ind+'">'+esc(ind.nom)+'</th>':'')+
-    '<th class="num ord'+(sk==='_dv'?' on':'')+'" data-k="_dv">vs '+esc(c.prevK?perCorto(ST.modo,c.prevK):'anterior')+'</th><th>Frente a '+esc(cfg.comp)+'</th></tr>';
+    '<th class="num ord'+(sk==='_dv'?' on':'')+'" data-k="_dv">vs '+esc(c.prevK?perCorto(ST.modo,c.prevK):'anterior')+'</th>'+(ind.dir!==0?'<th class="num">Puntaje</th>':'')+'<th class="num">vs su promedio</th><th>Alertas</th><th></th></tr>';
   var pos=0,colsV=cols.indexOf(ST.ind)<0?cols.concat([ST.ind]):cols;
   var tb=lst.map(function(x){
     if(x.ok)pos++;
@@ -1169,7 +1268,10 @@ function renderRanking(c){
         if(k===ST.ind&&x.ok&&v!=null&&maxV>0)return '<td class="num"><div class="barcell"><b>'+fmtV(v,f)+'</b><span class="mini"><i style="width:'+Math.max(2,v/maxV*100)+'%;background:'+colEstado(v,ref,ind.dir)+'"></i></span></div></td>';
         return '<td class="num">'+(k===ST.ind?'<b>'+fmtV(v,f)+'</b>':fmtV(v,f))+'</td>';}).join('')+
       '<td class="num">'+(x.dv!=null?'<span class="dt '+clsDelta(x.dv,ind.dir)+'">'+fmtDelta(x.dv,ind.fmt)+'</span>':'<span class="dt flat">—</span>')+'</td>'+
-      '<td><span class="st '+est[1]+'">'+esc(est[0])+'</span></td></tr>';
+      (ind.dir!==0?'<td class="num">'+(x.pt!=null?'<span class="ptb '+clsPt(x)+'">'+x.pt+'</span>':(x.ok?'—':'<span class="st low">'+esc(est[0])+'</span>'))+'</td>':'')+
+      '<td class="num">'+(x.dh!=null?'<span class="dt '+x.tend+'">'+fmtDelta(x.dh,ind.fmt)+'</span>':'<span class="dt flat">—</span>')+'</td>'+
+      '<td class="alc">'+x.al.slice(0,2).map(function(a){return '<span class="al '+a.c+'">'+esc(a.t)+'</span>';}).join(' ')+(x.al.length>2?' <span class="al mas">+'+(x.al.length-2)+'</span>':'')+'</td>'+
+      '<td><button type="button" class="btn det" data-p="'+esc(x.p)+'">Detalle</button></td></tr>';
   }).join('');
   $('rkTabla').innerHTML='<table><thead>'+th+'</thead><tbody>'+tb+'</tbody></table>';
   [].forEach.call($('rkTabla').querySelectorAll('th.ord'),function(t){t.onclick=function(){var k=t.dataset.k;if((ST.sort||ST.ind)===k)ST.sdir=-(ST.sdir||(k===ST.ind?(ind.dir<0?1:-1):-1));else{ST.sort=k;ST.sdir=k==='_p'?1:-1;}renderRanking(ULT);plegarTablasEnCelular();};});
@@ -1182,18 +1284,20 @@ function serieP(c,p,n){
   var m=c._byP[p]||{};return ks.map(function(k){if(!m[k])return null;var a=total(m[k],cfg);return baseDe(a,cfg)>=c.minN?val(a,ind):null;});
 }
 function renderTarjetas(c,lst){
-  var cfg=c.cfg,ind=c.ind,ref=c.ref,pos=0,h='';
-  var sec=(cfg.tarj||cfg.cols).filter(function(k){return k!==ST.ind;}).slice(0,4);
+  var cfg=c.cfg,ind=c.ind,h='',okN=(ULT.rank||[]).filter(function(x){return x.ok;}).length;
+  var pos={};(ULT.rank||[]).filter(function(x){return x.ok;}).forEach(function(x,j){pos[x.p]=j+1;});
+  var sec=(cfg.tarj||cfg.cols).filter(function(k){return k!==ST.ind;}).slice(0,2);
   lst.forEach(function(x,ix){
-    if(x.ok)pos++;
-    var est=x.ok?estado(x.v,ref,ind.dir):['Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+cfg.baseNom,'low'];
-    var col=x.ok?colEstado(x.v,ref,ind.dir):'#9AA9A4';
-    h+='<div class="tp'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'" tabindex="0" style="--c:'+col+'"><span class="tpb"></span>'+
-      '<div class="tph"><span class="tpos">'+(x.ok?pos:'–')+'</span><div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tipoNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div></div></div>'+
-      '<div class="tpl">'+esc(ind.nom)+'</div><div class="tpv"><span class="v">'+fmtV(x.v,ind.fmt)+'</span>'+(x.dv!=null?'<span class="d '+clsDelta(x.dv,ind.dir)+'">'+fmtDelta(x.dv,ind.fmt)+'</span>':'')+'</div>'+
+    var col=x.ok?colPt(x.pt):'#9AA9A4';
+    var al=x.al.slice(0,3).map(function(a){return '<span class="al '+a.c+'">'+(a.c==='mal'?'▼ ':a.c==='bien'?'▲ ':'⚠ ')+esc(a.t)+'</span>';}).join('');
+    h+='<div class="tp '+clsPt(x)+(x.ok?'':' baja')+(x.al.some(function(a){return a.c==='mal';})?' conal':'')+'" data-p="'+esc(x.p)+'" tabindex="0"><span class="tpb"></span>'+
+      '<div class="tpt">'+anillo(x,ind)+'<div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tipoNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div>'+
+        (x.ok?'<div class="tpos2">Puesto '+pos[x.p]+' de '+okN+'</div>':'<div class="tpos2">Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+esc(cfg.baseNom)+'</div>')+'</div></div>'+
+      '<div class="tpi"><span class="lb">'+esc(ind.nom)+'</span><b>'+fmtV(x.v,ind.fmt)+'</b></div>'+
+      '<div class="tph2">'+(textoHist(x,ind)||'<span class="dt flat">Sin '+PNOM[ST.modo][1]+' anteriores para comparar</span>')+'</div>'+
+      (al?'<div class="tal">'+al+'</div>':'')+
       '<div class="tps"><canvas id="tps'+ix+'"></canvas></div>'+
-      '<div class="tpm">'+sec.map(function(k){return '<div><b>'+fmtV(valCol(cfg,x.a,k),fmtCol(cfg,k))+'</b><span>'+esc(nomCol(cfg,k))+'</span></div>';}).join('')+'</div>'+
-      '<span class="st '+est[1]+'">'+esc(est[0])+'</span></div>';
+      '<div class="tpf"><span>'+sec.map(function(k){return '<b>'+fmtV(valCol(cfg,x.a,k),fmtCol(cfg,k))+'</b> '+esc(nomCol(cfg,k).toLowerCase());}).join(' · ')+'</span><button type="button" class="det">Ver detalle →</button></div></div>';
   });
   $('rkTabla').innerHTML='<div class="tgrid">'+h+'</div>';
   Object.keys(charts).forEach(function(k){if(/^tps/.test(k))destruir(k);});
@@ -1201,7 +1305,7 @@ function renderTarjetas(c,lst){
   lst.forEach(function(x,ix){
     var s=serieP(c,x.p,8),el=$('tps'+ix);if(!el)return;
     if(s.filter(function(v){return v!=null;}).length<2){el.parentNode.classList.add('sin');return;}
-    var col=x.ok?colEstado(x.v,ref,ind.dir):'#9AA9A4';
+    var col=x.ok?colPt(x.pt):'#9AA9A4';
     charts['tps'+ix]=new Chart(el,{type:'line',data:{labels:s.map(function(_,j){return j;}),datasets:[{data:s,borderColor:col,borderWidth:2,pointRadius:s.map(function(_,j){return j===s.length-1?3:0;}),pointBackgroundColor:col,tension:.35,fill:false,spanGaps:true}]},
       options:{animation:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false,grace:'15%'}},events:[]}});
   });
@@ -1477,9 +1581,9 @@ function publicar(c){
         filas:lista.map(function(k){var id=cfg.inds[k];return {k:id.nom,v:fmtV(val(tc,id),id.fmt),a:tp?fmtV(val(tp,id),id.fmt):null,u:subUniverso(cfg,k,tc)};})});
       var cols=cfg.cols.indexOf(ST.ind)<0?cfg.cols.concat([ST.ind]):cfg.cols,pos=0;
       var colsX=[{campo:'pos',titulo:'#',tipo:'entero'},{campo:'p',titulo:cfg.quien,tipo:'texto'}].concat(cfg.area&&!ST.tipo?[{campo:'ar',titulo:'Área',tipo:'texto'}]:[]).concat(cols.map(function(k){return {campo:'c_'+k,titulo:nomCol(cfg,k),tipo:tipoX(fmtCol(cfg,k))};}))
-        .concat([{campo:'dv',titulo:'Cambio vs '+(c.prevK?perNom(ST.modo,c.prevK):'anterior')+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'},{campo:'es',titulo:'Frente a '+cfg.comp,tipo:'texto'}]);
-      res.push({titulo:'Ranking — '+ind.nom,nota:ind.ph+' Mínimo para entrar al orden: '+c.minN+' '+cfg.baseNom+'.',columnas:colsX,
-        filas:(c.rank||[]).map(function(x){if(x.ok)pos++;var o={pos:x.ok?pos:null,p:x.p,ar:tipoNom(x.area),dv:x.dv,es:x.ok?estado(x.v,c.ref,ind.dir)[0]:'Muestra baja'};
+        .concat([{campo:'dv',titulo:'Cambio vs '+(c.prevK?perNom(ST.modo,c.prevK):'anterior')+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'}]).concat(ind.dir!==0?[{campo:'pt',titulo:'Puntaje (0-100)',tipo:'entero'}]:[]).concat([{campo:'dh',titulo:'Cambio vs su promedio anterior'+(ind.fmt==='pct'?' (pts)':''),tipo:'decimal'},{campo:'al',titulo:'Alertas',tipo:'texto'},{campo:'es',titulo:'Frente a '+cfg.comp,tipo:'texto'}]);
+      res.push({titulo:'Ranking — '+ind.nom,nota:ind.ph+' Mínimo para entrar al orden: '+c.minN+' '+cfg.baseNom+'.'+(ind.dir!==0?' Puntaje = posición entre '+cfg.comp+' (100 la mejor, 0 la última).':'')+' Promedio anterior = sus '+PNOM[ST.modo][1]+' anteriores con datos suficientes (hasta 3).',columnas:colsX,
+        filas:(c.rank||[]).map(function(x){if(x.ok)pos++;var o={pos:x.ok?pos:null,p:x.p,ar:tipoNom(x.area),dv:x.dv,pt:x.pt,dh:x.dh,al:(x.al||[]).map(function(q){return q.t;}).join(' · ')||null,es:x.ok?estado(x.v,c.ref,ind.dir)[0]:'Muestra baja'};
           cols.forEach(function(k){o['c_'+k]=conv(valCol(cfg,x.a,k),fmtCol(cfg,k));});return o;})});
       var raw=cfg.f.filter(function(k){return k!=='mingE';});
       var det=c.rCur.filter(function(o){return !ST.q||o.p.indexOf(ST.q)>=0;}).slice().sort(function(x,y){return y.fecha.localeCompare(x.fecha)||x.p.localeCompare(y.p);}).map(function(o){
