@@ -929,6 +929,13 @@ var GR={
       pd:{nom:'% prendas defectuosas',k:'ratio',num:'d',den:'m',mult:100,dir:-1,fmt:'pct',ph:'% prendas defectuosas = prendas con defecto que encontró la auditora ÷ prendas revisadas de su trabajo.'},
       n:{nom:'Auditorías a su trabajo',k:'vol',dir:0,fmt:'int',ph:'Veces que se auditó su trabajo.'}},
     def:'pr',kpis:['pr','pd','n'],tarj:['n','pr','m','pd'],cols:['n','r','pr','m','d','pd']},
+  rechazo_lives:{comp:'sus compañeras',todos:'todas las auditoras de taller',nom:'Rechazo en LIVES',quien:'Auditora de taller',quienes:'auditoras de taller',f:AUD_F,base:'n',baseNom:'auditorías aprobadas en taller',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Costura y Acabados',
+    nombres:{n:'Aprobadas en taller',r:'Rechazadas en LIVES',m:'Prendas',d:'Prendas defectuosas',l:'Prendas en lote',dias:'Días con registro'},
+    inds:{
+      pr:{nom:'% rechazado en LIVES',k:'ratio',num:'r',den:'n',mult:100,dir:-1,fmt:'pct',ph:'% rechazado en LIVES = auditorías que ella aprobó en el taller y que LIVES rechazó en su primera auditoría ÷ auditorías que ella aprobó en el taller y que llegaron a LIVES (mismo OP y color). Menor es mejor. Cada fecha es la de la auditoría en LIVES.'},
+      n:{nom:'Aprobadas en taller que llegaron a LIVES',k:'vol',dir:0,fmt:'int',ph:'Auditorías aprobadas por ella en el taller cuyo OP y color ya tuvo auditoría en LIVES (si dos auditoras la hicieron, cuenta para las dos).'},
+      r:{nom:'Rechazadas en LIVES',k:'vol',dir:-1,fmt:'int',ph:'De lo que aprobó en el taller, cuántas rechazó LIVES en su primera auditoría.'}},
+    def:'pr',kpis:['pr','r','n'],tarj:['n','r','pr'],cols:['n','r','pr']},
   ifc:{comp:'sus compañeras',todos:'todas las inspectoras',nom:'Insp. Final Costura',quien:'Inspectora',quienes:'inspectoras',f:['carga','prim','defe','rein','ming','mina','mingE'],base:'dias',baseNom:'días',mins:{semana:3,mes:8,anio:8},tipos:false,
     nombres:{carga:'Prendas inspeccionadas',prim:'Primeras',defe:'Defectos',rein:'Reinspeccionadas',ming:'Min ganados',mina:'Min asistidos',dias:'Días'},
     inds:{
@@ -952,7 +959,7 @@ var GR={
       n:{nom:'Mediciones',k:'vol',dir:0,fmt:'int',ph:'Mediciones de potencial cargadas.'}},
     def:'pot',kpis:['pot','n'],cols:['n','pot']}
 };
-var ORDEN_G=['auditoras','inspectoras','ifc','acabados','potenciales'];
+var ORDEN_G=['auditoras','inspectoras','rechazo_lives','ifc','acabados','potenciales'];
 
 /* ------------------------------------------------------------------ estado */
 var ST={g:'auditoras',modo:'mes',per:null,tipo:'',ind:null,q:'',sort:null,sdir:0,vista:'tarj',filtro:'todas'};
@@ -1331,7 +1338,7 @@ function renderTarjetas(c,lst){
       (x.areas?'<div class="tpa">'+x.areas.map(function(a){return '<span class="pa '+(!a.ok?'pc-gr':a.pt==null?'pc-mid':a.pt>=67?'pc-hi':a.pt<=33?'pc-lo':'pc-mid')+'"><b>'+(a.pt!=null?a.pt:'—')+'</b>'+esc(tNom(a.t))+(a.pos?' · '+a.pos+' de '+a.n:'')+(a.ok?'':' · pocos datos')+'</span>';}).join('')+'</div>':'')+
       (al?'<div class="tal">'+al+'</div>':'')+
       '<div class="tps"><canvas id="tps'+ix+'"></canvas></div>'+
-      '<div class="tpf"><span>'+sec.map(function(k){return '<b>'+fmtV(valCol(cfg,x.a,k),fmtCol(cfg,k))+'</b> '+esc(nomCol(cfg,k).toLowerCase());}).join(' · ')+'</span><button type="button" class="det">Ver detalle →</button></div></div>';
+      '<div class="tpf"><span>'+sec.map(function(k){return '<b>'+fmtV(valCol(cfg,x.a,k),fmtCol(cfg,k))+'</b> '+esc(nomCol(cfg,k).toLowerCase().replace(/lives/g,'LIVES'));}).join(' · ')+'</span><button type="button" class="det">Ver detalle →</button></div></div>';
   });
   $('rkTabla').innerHTML='<div class="tgrid">'+h+'</div>';
   Object.keys(charts).forEach(function(k){if(/^tps/.test(k))destruir(k);});
