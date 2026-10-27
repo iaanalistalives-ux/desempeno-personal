@@ -929,7 +929,7 @@ var GR={
       pd:{nom:'% prendas defectuosas',k:'ratio',num:'d',den:'m',mult:100,dir:-1,fmt:'pct',ph:'% prendas defectuosas = prendas con defecto que encontró la auditora ÷ prendas revisadas de su trabajo.'},
       n:{nom:'Auditorías a su trabajo',k:'vol',dir:0,fmt:'int',ph:'Veces que se auditó su trabajo.'}},
     def:'pr',kpis:['pr','pd','n'],tarj:['n','pr','m','pd'],cols:['n','r','pr','m','d','pd']},
-  rechazo_lives:{comp:'sus compañeras',todos:'todas las auditoras de taller',nom:'Rechazo en LIVES',quien:'Auditora de taller',quienes:'auditoras de taller',f:AUD_F,base:'n',baseNom:'auditorías aprobadas en taller',mins:{semana:3,mes:8,anio:8},tipos:true,tipoTodos:'Costura y Acabados',
+  rechazo_lives:{comp:'sus compañeras',todos:'todas las auditoras de taller',nom:'Rechazo en LIVES',quien:'Auditora de taller',quienes:'auditoras de taller',f:AUD_F,base:'n',baseNom:'auditorías aprobadas en taller',mins:{semana:1,mes:2,anio:3},tipos:true,tipoTodos:'Costura y Acabados',
     nombres:{n:'Aprobadas en taller',r:'Rechazadas en LIVES',m:'Prendas',d:'Prendas defectuosas',l:'Prendas en lote',dias:'Días con registro'},
     inds:{
       pr:{nom:'% rechazado en LIVES',k:'ratio',num:'r',den:'n',mult:100,dir:-1,fmt:'pct',ph:'% rechazado en LIVES = auditorías que ella aprobó en el taller y que LIVES rechazó en su primera auditoría ÷ auditorías que ella aprobó en el taller y que llegaron a LIVES (mismo OP y color). Menor es mejor. Cada fecha es la de la auditoría en LIVES.'},
@@ -1185,7 +1185,7 @@ function subUniverso(cfg,k,a){
   if(k==='ef'&&ST.g==='ifc')return fmtV(a.mingE,'int')+' min ganados de '+fmtV(a.mina,'int')+' asistidos';
   if(k==='ef'&&ST.g==='acabados')return fmtV(a.mp,'int')+' min producidos de '+fmtV(a.ma,'int')+' asistidos';
   if(k==='hrs')return fmtV(a.ma/60,'dec1')+' h en '+a.dias+' día(s)';
-  if(ind.num&&ind.den&&ind.den!=='_uno')return fmtV(a[ind.num],'int')+' '+(n[ind.num]||ind.num).toLowerCase()+' de '+fmtV(ind.den==='dias'?a.dias:a[ind.den],'int')+' '+(n[ind.den]||ind.den).toLowerCase();
+  if(ind.num&&ind.den&&ind.den!=='_uno')return fmtV(a[ind.num],'int')+' '+(n[ind.num]||ind.num).toLowerCase().replace(/lives/g,'LIVES')+' de '+fmtV(ind.den==='dias'?a.dias:a[ind.den],'int')+' '+(n[ind.den]||ind.den).toLowerCase();
   return '';
 }
 
