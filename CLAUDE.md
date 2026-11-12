@@ -21,7 +21,7 @@ Cómo se calcula:
 - Referencia del grupo = media ± 1 desviación estándar ("Sobre / Como / Bajo sus compañeras"). Comparación con su propio promedio de hasta 3 períodos anteriores.
 - Alertas: baja o sube N períodos seguidos, su mejor y peor marca, tercio más bajo N seguidos; en IFC, "Faltan horas en N días".
 
-Vistas: Semana/Mes/Año con ‹ ›, área, indicador, Tarjetas/Tabla, búsqueda por persona; KPIs con mini-gráficos, ranking, tendencia, "Quién más cambió", mapa por período y ficha por persona ("Día por día", hasta 500 filas). Excel LIVES con Resumen (indicadores y ranking) y Detalle.
+Vistas: Semana/Mes/Año con ‹ ›, área, indicador, Tarjetas/Tabla, búsqueda por persona; ranking (sin tarjetas de indicadores arriba desde el 12/11/2026, decisión de Christian; el Excel conserva la tabla de indicadores), tendencia, "Quién más cambió", mapa por período y ficha por persona ("Día por día", hasta 500 filas). Excel LIVES con Resumen (indicadores y ranking) y Detalle.
 
 ## Base de datos (Supabase lives-datos)
 - Una sola función: `desempeno_personal` (`p_accion:'datos'`, `p.grupo`: auditoras, inspectoras, rechazo_lives, ifc, acabados, potenciales).

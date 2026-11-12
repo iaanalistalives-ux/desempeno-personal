@@ -832,7 +832,7 @@ body.modal{overflow:hidden;}
   <div id="sinDatos" class="panel col12" style="display:none"><span class="tira"></span><div class="vacio" id="sinDatosTx"></div></div>
 
   <div id="cuerpo">
-    <div class="kpis" id="kpis"></div>
+    <div class="kpis" id="kpis" style="display:none"></div>
 
     <div class="grid">
       <div class="panel col12 plegable-si" id="pRank">
@@ -1144,7 +1144,8 @@ function render(){
   $('sinDatos').style.display='none';$('cuerpo').style.display='';
   var ctx={cfg:cfg,rows:rows,pers:pers,prevK:prevK,ind:ind,minN:minN,rCur:rCur,rPrev:rPrev,pCur:pCur,pPrev:pPrev,ref:ref};
   ULT=ctx;
-  renderKpis(ctx);renderRanking(ctx);renderTend(ctx);renderMov(ctx);renderHeat(ctx);
+  /* v1.4 (12/11/2026): sin tarjetas de indicadores arriba, por decisión de Christian */
+  renderRanking(ctx);renderTend(ctx);renderMov(ctx);renderHeat(ctx);
   reajustarGrids();plegarTablasEnCelular();
   publicar(ctx);
 }
