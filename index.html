@@ -739,7 +739,7 @@ html[data-tema="oscuro"] .ring .rt{stroke:#28463F;}
 .ring .rv{fill:none;stroke:var(--c);stroke-width:7;stroke-linecap:round;transition:stroke-dasharray .9s cubic-bezier(.2,.8,.2,1);}
 .ring .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;}
 .ring .rc b{font-size:24px;font-weight:700;color:var(--c);} .ring .rc b.sm{font-size:15px;}
-.ring .rc span{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#5F726C;margin-top:3px;}
+.ring .rc span{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#5F726C;margin-top:3px;} .ring .rc span.vl{font-size:8px;letter-spacing:0;}
 .tpos2{font-size:11px;font-weight:700;color:#4E6B78;margin-top:3px;}
 .tpi{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-top:1px solid #F1F6F4;padding-top:8px;}
 .tpi .lb{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#5F726C;}
@@ -1248,11 +1248,20 @@ function rankDe(pp,cfg,ind,minN){
     r.pt[p]=Math.round(100*(peor+(igual-1)/2)/(ok.length-1));r.pos[p]=mejor+1;});
   return r;
 }
+function puestos(c){
+  var cfg=c.cfg,ind=c.ind,r=rankDe(c.pCur,cfg,ind,c.minN),o={pos:{},pt:{},n:0};
+  var ok=Object.keys(c.pCur).filter(function(p){return baseDe(c.pCur[p],cfg)>=c.minN&&val(c.pCur[p],ind)!=null;});
+  o.n=ok.length;if(r){o.pos=r.pos;o.pt=r.pt;return o;}
+  ok.sort(function(a,b){return (val(c.pCur[b],ind)-val(c.pCur[a],ind))*(ind.dir<0?-1:1)||a.localeCompare(b);}).forEach(function(p,j){o.pos[p]=j+1;});
+  return o;
+}
 function colPt(v){return v==null?'#4E6B78':v>=67?'#0F7A5A':v<=33?'#DC2626':'#4E6B78';}
 function clsPt(x){return !x.ok?'pc-gr':x.pt==null?'pc-mid':x.pt>=67?'pc-hi':x.pt<=33?'pc-lo':'pc-mid';}
-function anillo(x,ind){
-  var v=x.pt,col=x.ok?colPt(v):'#9AA9A4',L=2*Math.PI*30,d=v==null?0:L*v/100;
-  var cen=v!=null?'<b>'+v+'</b><span>puntaje</span>':(x.ok?'<b class="sm">'+fmtCorto(x.v,ind.fmt)+'</b><span>'+esc(ind.nom.length>14?'valor':ind.nom)+'</span>':'<b class="sm">—</b><span>pocos datos</span>');
+function clsPtG(x){return !x.ok?'pc-gr':x.ptG==null?'pc-mid':x.ptG>=67?'pc-hi':x.ptG<=33?'pc-lo':'pc-mid';}
+function anillo(x,ind,maxV){
+  /* v1.3: el círculo muestra el valor del indicador (ej. % eficiencia), no el puntaje */
+  var v=x.v,L=2*Math.PI*30,fr=v==null?0:(ind.fmt==='pct'?v/100:(maxV>0?v/maxV:0));fr=Math.max(0,Math.min(1,fr));var d=L*fr;
+  var cen=v!=null?'<b class="sm">'+fmtCorto(v,ind.fmt)+'</b><span class="vl">'+esc(ind.nom.length>14?'valor':ind.nom)+'</span>':'<b class="sm">—</b><span>'+(x.ok?'sin dato':'pocos datos')+'</span>';
   return '<div class="ring"><svg viewBox="0 0 72 72" aria-hidden="true"><circle class="rt" cx="36" cy="36" r="30"/><circle class="rv" cx="36" cy="36" r="30" stroke-dasharray="'+d.toFixed(1)+' '+L.toFixed(1)+'"/></svg><div class="rc">'+cen+'</div></div>';
 }
 function textoHist(x,ind){
@@ -1284,7 +1293,8 @@ function filasRanking(c){
 }
 function renderRanking(c){
   var cfg=c.cfg,ind=c.ind,lst0=filasRanking(c);var res=analizar(c,lst0);
-  if(cfg.area&&!ST.tipo&&ind.dir!==0&&!ST.sort)lst0.sort(function(x,y){if(x.ok!==y.ok)return x.ok?-1:1;var a=x.pt==null?-1:x.pt,b=y.pt==null?-1:y.pt;return b-a||x.p.localeCompare(y.p);});
+  /* v1.3: el orden y el puesto salen del valor del indicador (mejor arriba), entre todos los que se ven; ya no del puntaje por área */
+  var pg=puestos(c);lst0.forEach(function(x){x.posG=x.ok&&pg.pos[x.p]!=null?pg.pos[x.p]:null;x.ptG=x.ok&&pg.pt[x.p]!=null?pg.pt[x.p]:null;x.nG=pg.n;});
   ULT.rank=lst0;chipsFiltro(res);var lst=lst0.filter(filtroOk);
   $('rkTit').textContent='Ranking de '+cfg.quienes+' · '+perNom(ST.modo,ST.per)+(ST.tipo?' · '+tNom(ST.tipo):'');
   var ref=c.ref;
@@ -1302,7 +1312,7 @@ function renderRanking(c){
   var tb=lst.map(function(x){
     if(x.ok)pos++;
     var est=x.ok?estado(x.v,ref,ind.dir):['Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+cfg.baseNom,'low'];
-    return '<tr class="clic'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'"><td>'+(x.ok?'<span class="pos">'+(cfg.area&&!ST.tipo?(x.posA||'–'):pos)+'</span>':'')+'</td><td class="nm">'+esc(x.p)+'</td>'+
+    return '<tr class="clic'+(x.ok?'':' baja')+'" data-p="'+esc(x.p)+'"><td>'+(x.ok?'<span class="pos">'+(x.posG||'–')+'</span>':'')+'</td><td class="nm">'+esc(x.p)+'</td>'+
       (cfg.area&&!ST.tipo?'<td>'+esc(tNom(x.area))+(x.areas?'<div class="otras">'+x.areas.filter(function(a){return a.t!==x.area;}).map(function(a){return esc(tipoNom(a.t))+' '+(a.pt!=null?a.pt:'—');}).join(' · ')+'</div>':'')+'</td>':'')+
       colsV.map(function(k){var v=valCol(cfg,x.a,k),f=fmtCol(cfg,k);
         if(k===ST.ind&&x.ok&&v!=null&&maxV>0)return '<td class="num"><div class="barcell"><b>'+fmtV(v,f)+'</b><span class="mini"><i style="width:'+Math.max(2,v/maxV*100)+'%;background:'+colEstado(v,ref,ind.dir)+'"></i></span></div></td>';
@@ -1324,18 +1334,17 @@ function serieP(c,p,n){
   var m=c._byP[p]||{};return ks.map(function(k){if(!m[k])return null;var a=total(m[k],cfg);return baseDe(a,cfg)>=c.minN?val(a,ind):null;});
 }
 function renderTarjetas(c,lst){
-  var cfg=c.cfg,ind=c.ind,h='',okN=(ULT.rank||[]).filter(function(x){return x.ok;}).length;
-  var pos={};(ULT.rank||[]).filter(function(x){return x.ok;}).forEach(function(x,j){pos[x.p]=j+1;});
+  var cfg=c.cfg,ind=c.ind,h='';
+  var maxV=0;(ULT.rank||[]).forEach(function(x){if(x.ok&&x.v!=null&&x.v>maxV)maxV=x.v;});
   var sec=(cfg.tarj||cfg.cols).filter(function(k){return k!==ST.ind;}).slice(0,2);
   lst.forEach(function(x,ix){
-    var col=x.ok?colPt(x.pt):'#9AA9A4';
     var al=x.al.slice(0,3).map(function(a){return '<span class="al '+a.c+'">'+(a.c==='mal'?'▼ ':a.c==='bien'?'▲ ':'⚠ ')+esc(a.t)+'</span>';}).join('');
-    h+='<div class="tp '+clsPt(x)+(x.ok?'':' baja')+(x.al.some(function(a){return a.c==='mal';})?' conal':'')+'" data-p="'+esc(x.p)+'" tabindex="0"><span class="tpb"></span>'+
-      '<div class="tpt">'+anillo(x,ind)+'<div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div>'+
-        (x.ok?'<div class="tpos2">'+(cfg.area?(x.posA?'Puesto '+x.posA+' de '+x.nA+' en '+esc(tNom(x.area)):'Sin con quién comparar en '+esc(tNom(x.area))):'Puesto '+pos[x.p]+' de '+okN)+'</div>':'<div class="tpos2">Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+esc(cfg.baseNom)+'</div>')+'</div></div>'+
-      '<div class="tpi"><span class="lb">'+esc(ind.nom)+'</span><b>'+fmtV(x.v,ind.fmt)+'</b></div>'+
+    h+='<div class="tp '+clsPtG(x)+(x.ok?'':' baja')+(x.al.some(function(a){return a.c==='mal';})?' conal':'')+'" data-p="'+esc(x.p)+'" tabindex="0"><span class="tpb"></span>'+
+      '<div class="tpt">'+anillo(x,ind,maxV)+'<div class="tpn"><div class="nm">'+esc(x.p)+'</div><div class="sb">'+esc(cfg.area?tNom(x.area):(cfg.tipos?Object.keys(x.a._t).map(tipoNom).join(' · '):cfg.quien))+'</div>'+
+        (x.ok?'<div class="tpos2">'+(x.posG?'Puesto '+x.posG+' de '+x.nG:'Sin dato para el puesto')+'</div>':'<div class="tpos2">Pocos datos: '+baseDe(x.a,cfg)+' de '+c.minN+' '+esc(cfg.baseNom)+'</div>')+'</div></div>'+
+      (ind.nom.length>14?'<div class="tpi"><span class="lb">'+esc(ind.nom)+'</span></div>':'')+
       '<div class="tph2">'+(textoHist(x,ind)||'<span class="dt flat">Sin '+PNOM[ST.modo][1]+' anteriores para comparar</span>')+'</div>'+
-      (x.areas?'<div class="tpa">'+x.areas.map(function(a){return '<span class="pa '+(!a.ok?'pc-gr':a.pt==null?'pc-mid':a.pt>=67?'pc-hi':a.pt<=33?'pc-lo':'pc-mid')+'"><b>'+(a.pt!=null?a.pt:'—')+'</b>'+esc(tNom(a.t))+(a.pos?' · '+a.pos+' de '+a.n:'')+(a.ok?'':' · pocos datos')+'</span>';}).join('')+'</div>':'')+
+      (x.areas?'<div class="tpa">'+x.areas.map(function(a){return '<span class="pa '+(!a.ok?'pc-gr':a.pt==null?'pc-mid':a.pt>=67?'pc-hi':a.pt<=33?'pc-lo':'pc-mid')+'"><b>'+(a.v!=null?fmtCorto(a.v,ind.fmt):'—')+'</b>'+esc(tNom(a.t))+(a.pos?' · '+a.pos+' de '+a.n:'')+(a.ok?'':' · pocos datos')+'</span>';}).join('')+'</div>':'')+
       (al?'<div class="tal">'+al+'</div>':'')+
       '<div class="tps"><canvas id="tps'+ix+'"></canvas></div>'+
       '<div class="tpf"><span>'+sec.map(function(k){return '<b>'+fmtV(valCol(cfg,x.a,k),fmtCol(cfg,k))+'</b> '+esc(nomCol(cfg,k).toLowerCase().replace(/lives/g,'LIVES'));}).join(' · ')+'</span><button type="button" class="det">Ver detalle →</button></div></div>';
@@ -1346,7 +1355,7 @@ function renderTarjetas(c,lst){
   lst.forEach(function(x,ix){
     var s=serieP(c,x.p,8),el=$('tps'+ix);if(!el)return;
     if(s.filter(function(v){return v!=null;}).length<2){el.parentNode.classList.add('sin');return;}
-    var col=x.ok?colPt(x.pt):'#9AA9A4';
+    var col=x.ok?colPt(x.ptG):'#9AA9A4';
     charts['tps'+ix]=new Chart(el,{type:'line',data:{labels:s.map(function(_,j){return j;}),datasets:[{data:s,borderColor:col,borderWidth:2,pointRadius:s.map(function(_,j){return j===s.length-1?3:0;}),pointBackgroundColor:col,tension:.35,fill:false,spanGaps:true}]},
       options:{animation:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false,grace:'15%'}},events:[]}});
   });

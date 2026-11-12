@@ -16,7 +16,8 @@ Seis pestañas:
 Cómo se calcula:
 - Todo ponderado: suma de numeradores ÷ suma de denominadores del período.
 - Mínimo de datos para entrar al ranking (3 / 8 / 8 auditorías o días por semana, mes o año; en Potenciales 1 / 2 / 4 mediciones).
-- Puntaje 0–100 = percentil entre compañeros (mínimo 3 personas con datos suficientes; en Eficiencia y Potenciales, dentro de cada área).
+- Ranking (desde el 12/11/2026, pedido de las dueñas): la lista se ordena por el valor del indicador elegido (ej. % eficiencia), el mejor arriba y el peor abajo, entre todas las personas que se ven; el círculo de cada tarjeta muestra ese valor y el puesto es general ("Puesto 3 de 25"). Quien no llega al mínimo va al final en gris.
+- Puntaje 0–100 = percentil entre compañeros (mínimo 3 personas con datos suficientes; en Eficiencia y Potenciales, dentro de cada área). Ya no se ve en el círculo ni ordena la lista; sigue en la columna Puntaje de la vista Tabla, en la ficha por área, en el Excel y en la alerta del tercio más bajo.
 - Referencia del grupo = media ± 1 desviación estándar ("Sobre / Como / Bajo sus compañeras"). Comparación con su propio promedio de hasta 3 períodos anteriores.
 - Alertas: baja o sube N períodos seguidos, su mejor y peor marca, tercio más bajo N seguidos; en IFC, "Faltan horas en N días".
 
