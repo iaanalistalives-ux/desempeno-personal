@@ -17,9 +17,9 @@ Cómo se calcula:
 - Todo ponderado: suma de numeradores ÷ suma de denominadores del período.
 - Mínimo de datos para entrar al ranking (3 / 8 / 8 auditorías o días por semana, mes o año; en Potenciales 1 / 2 / 4 mediciones).
 - Ranking (desde el 12/11/2026, pedido de las dueñas): la lista se ordena por el valor del indicador elegido (ej. % eficiencia), el mejor arriba y el peor abajo, entre todas las personas que se ven; el círculo de cada tarjeta muestra ese valor y el puesto es general ("Puesto 3 de 25"). Quien no llega al mínimo va al final en gris.
-- El «puntaje» 0–100 ya no se muestra en ningún lado (decisión de Christian, 12/11/2026): ni círculo, ni tabla, ni ficha, ni Excel. Por dentro se sigue calculando la posición entre compañeros (mínimo 3 personas con datos suficientes) solo para el color verde/rojo por tercio, el puesto dentro de cada área (ficha y Excel) y la alerta «tercio más bajo» (en Eficiencia y Potenciales, dentro de su área).
+- El «puntaje» 0–100 ya no se muestra en ningún lado (decisión de Christian, 12/11/2026): ni círculo, ni tabla, ni ficha, ni Excel. Por dentro se sigue calculando la posición entre compañeros (mínimo 3 personas con datos suficientes) solo para el color verde/rojo por tercio, el puesto dentro de cada área (ficha y Excel).
 - Referencia del grupo = media ± 1 desviación estándar ("Sobre / Como / Bajo sus compañeras"). Comparación con su propio promedio de hasta 3 períodos anteriores.
-- Alertas: baja o sube N períodos seguidos, su mejor y peor marca, tercio más bajo N seguidos; en IFC, "Faltan horas en N días".
+- Alertas: baja o sube N períodos seguidos, su mejor y peor marca (la alerta «tercio más bajo» se quitó el 12/11/2026); en IFC, "Faltan horas en N días".
 
 Vistas: Semana/Mes/Año con ‹ ›, área, indicador, Tarjetas/Tabla, búsqueda por persona; ranking (sin tarjetas de indicadores arriba desde el 12/11/2026, decisión de Christian; el Excel conserva la tabla de indicadores), tendencia, "Quién más cambió", mapa por período y ficha por persona ("Día por día", hasta 500 filas). Excel LIVES con Resumen (indicadores y ranking) y Detalle.
 
