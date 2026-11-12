@@ -832,7 +832,7 @@ body.modal{overflow:hidden;}
   <div id="sinDatos" class="panel col12" style="display:none"><span class="tira"></span><div class="vacio" id="sinDatosTx"></div></div>
 
   <div id="cuerpo">
-    <div class="kpis" id="kpis"></div>
+    <div class="kpis" id="kpis" style="display:none"></div>
 
     <div class="grid">
       <div class="panel col12 plegable-si" id="pRank">
@@ -955,7 +955,7 @@ var GR={
   potenciales:{comp:'sus compañeros',todos:'todas las personas',nom:'Potenciales',quien:'Persona',quienes:'personas',f:['s','n'],base:'n',baseNom:'mediciones',mins:{semana:1,mes:2,anio:4},tipos:true,tipoTodos:'Todas las áreas',area:true,soloSemanaMesAnio:true,
     nombres:{s:'Suma potencial',n:'Mediciones',dias:'Semanas'},
     inds:{
-      pot:{nom:'Potencial promedio',k:'ratio',num:'s',den:'n',mult:1,dir:1,fmt:'pct',ph:'Potencial promedio = suma de los potenciales medidos ÷ número de mediciones. Costura mide por operación; Corte y Acabados, por persona: no se comparan entre áreas.'},
+      pot:{nom:'Potencial promedio',k:'ratio',num:'s',den:'n',mult:1,dir:1,fmt:'pct',ph:'Potencial promedio = suma de los potenciales medidos ÷ número de mediciones. Costura mide por operación; Corte y Acabados, por persona; para comparar dentro de una sola área, elegirla en el filtro de áreas.'},
       n:{nom:'Mediciones',k:'vol',dir:0,fmt:'int',ph:'Mediciones de potencial cargadas.'}},
     def:'pot',kpis:['pot','n'],cols:['n','pot']}
 };
@@ -1144,7 +1144,8 @@ function render(){
   $('sinDatos').style.display='none';$('cuerpo').style.display='';
   var ctx={cfg:cfg,rows:rows,pers:pers,prevK:prevK,ind:ind,minN:minN,rCur:rCur,rPrev:rPrev,pCur:pCur,pPrev:pPrev,ref:ref};
   ULT=ctx;
-  renderKpis(ctx);renderRanking(ctx);renderTend(ctx);renderMov(ctx);renderHeat(ctx);
+  /* v1.4 (12/11/2026): sin tarjetas de indicadores arriba, por decisión de Christian */
+  renderRanking(ctx);renderTend(ctx);renderMov(ctx);renderHeat(ctx);
   reajustarGrids();plegarTablasEnCelular();
   publicar(ctx);
 }
@@ -1230,7 +1231,6 @@ function analizar(c,lst){
         if(nn.filter(function(v){return mejor(v,sv[cur]);}).length===nn.length-1)x.al.push({t:'Su peor marca en '+nn.length+' '+pn[1],c:'mal'});
       }
       var bajo=0;for(var j3=cur;j3>=0;j3--){var r3=rkDe(ks[j3],x.p,x.area);if(r3&&r3.pt<=33)bajo++;else break;}
-      if(bajo>=2)x.al.push({t:'En el tercio más bajo '+bajo+' '+pn[1]+' seguidos',c:'mal'});
     }
     x.al.sort(function(a,b){var o={mal:0,amb:1,bien:2};return o[a.c]-o[b.c];});
     if(x.al.some(function(a){return a.c!=='bien';}))res.alerta++;
@@ -1261,7 +1261,7 @@ function clsPtG(x){return !x.ok?'pc-gr':x.ptG==null?'pc-mid':x.ptG>=67?'pc-hi':x
 function anillo(x,ind,maxV){
   /* v1.3: el círculo muestra el valor del indicador (ej. % eficiencia), no el puntaje */
   var v=x.v,L=2*Math.PI*30,fr=v==null?0:(ind.fmt==='pct'?v/100:(maxV>0?v/maxV:0));fr=Math.max(0,Math.min(1,fr));var d=L*fr;
-  var tx=fmtCorto(v,ind.fmt);var cen=v!=null?'<b class="'+(tx.length<=5?'lg':tx.length<=7?'md':'sm')+'">'+tx+'</b><span class="vl">'+esc(ind.nom.length>14?'valor':ind.nom)+'</span>':'<b class="sm">—</b><span>'+(x.ok?'sin dato':'pocos datos')+'</span>';
+  var tx=fmtCorto(v,ind.fmt);var cen=v!=null?'<b class="'+(tx.length<=5?'lg':tx.length<=7?'md':'sm')+'">'+tx+'</b>'+(ind.nom.length>14?'':'<span class="vl">'+esc(ind.nom)+'</span>'):'<b class="sm">—</b><span>'+(x.ok?'sin dato':'pocos datos')+'</span>';
   return '<div class="ring"><svg viewBox="0 0 72 72" aria-hidden="true"><circle class="rt" cx="36" cy="36" r="30"/><circle class="rv" cx="36" cy="36" r="30" stroke-dasharray="'+d.toFixed(1)+' '+L.toFixed(1)+'"/></svg><div class="rc">'+cen+'</div></div>';
 }
 function textoHist(x,ind){
